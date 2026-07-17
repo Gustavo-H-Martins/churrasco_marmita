@@ -327,7 +327,7 @@ window.addEventListener('message', function(ev) {
     </div>
     <div class="chips">
       <a class="chip" href="https://www.instagram.com/churrasco_marmita/" target="_blank" rel="noopener noreferrer">Instagram</a>
-      <a class="chip" href="https://wa.me/553193817229" target="_blank" rel="noopener noreferrer">+55 31 9381-7229</a>
+      <a class="chip" href="https://wa.me/553193144890" target="_blank" rel="noopener noreferrer">+55 31 9314-4890</a>
       <span class="chip">Rua das Seringueiras Nº 20, Bairro das Acácias, Lagoa Santa</span>
     </div>
   </div>
@@ -358,8 +358,44 @@ window.addEventListener('message', function(ev) {
               <input id="phone" placeholder="(31) 99999-9999" />
             </div>
             <div>
-              <label class="label" for="address">Endereço opcional</label>
-              <textarea id="address" placeholder="Rua, número, complemento, bairro..."></textarea>
+              <label class="label" for="neighborhood">Bairro</label>
+              <select id="neighborhood" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
+                <option value="">Selecione o bairro...</option>
+                <option value="Acácias">Acácias</option>
+                <option value="Vila Maria">Vila Maria</option>
+                <option value="Santa Helena">Santa Helena</option>
+                <option value="Vila Rica">Vila Rica</option>
+                <option value="Jardim Imperial">Jardim Imperial</option>
+                <option value="Por do Sol">Por do Sol</option>
+                <option value="Moradas">Moradas</option>
+                <option value="Vale Verde Ville">Vale Verde Ville</option>
+                <option value="Portal do Sol">Portal do Sol</option>
+                <option value="Jacques Vile">Jacques Vile</option>
+                <option value="Palmital">Palmital</option>
+                <option value="Vale dos Sonhos">Vale dos Sonhos</option>
+                <option value="Vila Fagundes">Vila Fagundes</option>
+                <option value="Sobradinho">Sobradinho</option>
+                <option value="Brant">Brant</option>
+                <option value="Campinho">Campinho</option>
+                <option value="Centro">Centro</option>
+                <option value="Barraginha">Barraginha</option>
+                <option value="Várzea">Várzea</option>
+                <option value="Bela Vista">Bela Vista</option>
+                <option value="Joa">Joa</option>
+                <option value="Santos Dumont">Santos Dumont</option>
+                <option value="Ovídeo Guerra">Ovídeo Guerra</option>
+                <option value="Ipê">Ipê</option>
+                <option value="Praia Angélica">Praia Angélica</option>
+                <option value="Novo Santos Dumont">Novo Santos Dumont</option>
+                <option value="Recanto">Recanto</option>
+                <option value="Aeronautas">Aeronautas</option>
+                <option value="Visão">Visão</option>
+                <option value="Lagoinha">Lagoinha</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="address">Endereço</label>
+              <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
             </div>
           </div>
         </div>
@@ -373,6 +409,7 @@ window.addEventListener('message', function(ev) {
           <div id="cartList" class="cart-list"></div>
           <div class="summary">
             <div class="summary-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+            <div class="summary-row"><span>Frete</span><strong id="shipping">—</strong></div>
             <div class="summary-row total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
           </div>
         </div>
@@ -398,11 +435,24 @@ window.addEventListener('message', function(ev) {
   ];
   const cart = Object.fromEntries(products.map(p => [p.id, 0]));
 
+  const shippingRates = {
+    'Acácias':2, 'Vila Maria':2, 'Santa Helena':2,
+    'Vila Rica':3, 'Jardim Imperial':3, 'Por do Sol':3, 'Moradas':3, 'Vale Verde Ville':3, 'Portal do Sol':3, 'Jacques Vile':3,
+    'Palmital':4, 'Vale dos Sonhos':4, 'Vila Fagundes':4,
+    'Sobradinho':5, 'Brant':5, 'Campinho':5,
+    'Centro':6, 'Barraginha':6,
+    'Várzea':7, 'Bela Vista':7,
+    'Joa':8, 'Santos Dumont':8, 'Ovídeo Guerra':8,
+    'Ipê':9, 'Praia Angélica':9, 'Novo Santos Dumont':9, 'Recanto':9,
+    'Aeronautas':10, 'Visão':10, 'Lagoinha':10
+  };
+
   const fmt = value => value.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
   const productsEl = document.getElementById('products');
   const cartListEl = document.getElementById('cartList');
   const subtotalEl = document.getElementById('subtotal');
   const totalEl = document.getElementById('total');
+  const shippingEl = document.getElementById('shipping');
   const cartCountEl = document.getElementById('cartCount');
   const statusEl = document.getElementById('status');
 
@@ -449,9 +499,12 @@ window.addEventListener('message', function(ev) {
     const selected = products.filter(p => cart[p.id] > 0);
     const totalItems = selected.reduce((sum,p) => sum + cart[p.id], 0);
     const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
+    const neighborhood = document.getElementById('neighborhood').value;
+    const shipping = shippingRates[neighborhood] || 0;
     cartCountEl.textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'itens'}`;
     subtotalEl.textContent = fmt(subtotal);
-    totalEl.textContent = fmt(subtotal);
+    shippingEl.textContent = neighborhood ? fmt(shipping) : '—';
+    totalEl.textContent = fmt(subtotal + shipping);
 
     if(!selected.length){
       cartListEl.innerHTML = '<div class="empty">Seu carrinho está vazio. Escolha os itens e finalize em segundos.</div>';
@@ -479,33 +532,43 @@ window.addEventListener('message', function(ev) {
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const address = document.getElementById('address').value.trim();
+    const neighborhoodEl = document.getElementById('neighborhood');
+    const neighborhood = neighborhoodEl.value;
     const selected = products.filter(p => cart[p.id] > 0);
 
     if(!name) return showStatus('Preencha o nome do cliente.');
     if(!phone) return showStatus('Preencha o telefone do cliente.');
+    if(!neighborhood) return showStatus('Selecione o bairro para calcular o frete.');
     if(!selected.length) return showStatus('Adicione pelo menos um item ao pedido.');
 
-    const total = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
+    const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
+    const shipping = shippingRates[neighborhood] || 0;
+    const total = subtotal + shipping;
     const itemsText = selected.map(p => `- ${p.name} x${cart[p.id]} = ${fmt(cart[p.id] * p.price)}`).join('%0A');
     const message = [
       '*Novo pedido - Churrasco na Marmita*',
       '',
       `*Nome:* ${name}`,
       `*Telefone:* ${phone}`,
+      `*Bairro:* ${neighborhood}`,
       address ? `*Endereço:* ${address}` : '*Endereço:* não informado',
       '',
       '*Pedido:*',
       itemsText.replace(/%0A/g,'\n'),
       '',
+      `*Subtotal:* ${fmt(subtotal)}`,
+      `*Frete:* ${fmt(shipping)}`,
       `*Total:* ${fmt(total)}`
     ].join('\n');
 
-    const url = `https://wa.me/553193817229?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/553193144890?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     if (typeof sendPrompt === 'function') {
       sendPrompt(`Pedido iniciado no WhatsApp para Churrasco na Marmita. Cliente: ${name}.`);
     }
   });
+
+  document.getElementById('neighborhood').addEventListener('change', () => render());
 
   render();
 </script></body>
