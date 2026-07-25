@@ -314,6 +314,25 @@ window.addEventListener('message', function(ev) {
   .status{display:none;padding:12px 14px;border-radius:10px;font-size:var(--text-small)}
   .status.error{display:block;background:rgba(239,68,68,.10);color:var(--color-text-primary);border:1px solid var(--color-border-error)}
   @media(min-width:900px){.layout{grid-template-columns:1.2fr .8fr}}
+  .closed-banner{display:none;padding:12px 16px;background:rgba(239,68,68,.12);border:1px solid var(--color-border-error);border-radius:var(--radius-8);margin-bottom:var(--space-16);font-size:var(--text-small);font-weight:600;text-align:center}
+  .closed-banner.active{display:block}
+  .footer-admin{margin-top:var(--space-24);padding:var(--space-12) 0;text-align:center}
+  .footer-admin button{background:none;border:none;color:var(--color-text-tertiary);font-size:var(--text-caption);cursor:pointer;padding:4px 8px}
+  .footer-admin button:hover{color:var(--color-text-secondary)}
+  .product.dimmed{opacity:.6}
+  .qty button:disabled{opacity:.35;cursor:not-allowed}
+  .qty button:disabled:hover{border-color:var(--color-border-default)}
+  .admin-modal{position:fixed;inset:0;z-index:999;display:none;place-items:center;background:rgba(0,0,0,.6)}
+  .admin-modal.active{display:grid}
+  .admin-modal-content{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:var(--space-24);max-width:320px;width:90%;display:grid;gap:var(--space-12)}
+  .admin-modal-content h4{margin:0;font-size:var(--text-h4)}
+  .admin-modal-content input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+  .admin-modal-actions{display:flex;gap:var(--space-8)}
+  .admin-modal-actions button{flex:1;padding:10px;border:none;border-radius:var(--radius-8);font-weight:600;cursor:pointer;font-size:var(--text-small)}
+  .admin-modal-actions button:first-child{background:var(--color-brand-primary);color:var(--color-text-on-brand)}
+  .admin-modal-actions button:last-child{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
+  .admin-error{font-size:var(--text-caption);color:var(--color-error);display:none}
+  .admin-error.active{display:block}
 </style>
 
 <div class="menu-app">
@@ -331,6 +350,8 @@ window.addEventListener('message', function(ev) {
       <span class="chip">Rua das Seringueiras Nº 20, Bairro das Acácias, Lagoa Santa</span>
     </div>
   </div>
+
+  <div id="closedBanner" class="closed-banner">🛑 Fechado por enquanto — Volte mais tarde!</div>
 
   <div class="layout">
     <div class="panel">
@@ -423,6 +444,20 @@ window.addEventListener('message', function(ev) {
   </div>
 
 
+  <div id="adminModal" class="admin-modal">
+    <div class="admin-modal-content">
+      <h4>Acesso Administrativo</h4>
+      <input type="password" id="adminPwd" placeholder="Digite a senha" />
+      <div class="admin-modal-actions">
+        <button id="adminPwdSubmit">Entrar</button>
+        <button id="adminPwdCancel">Cancelar</button>
+      </div>
+      <div id="adminError" class="admin-error"></div>
+    </div>
+  </div>
+  <div class="footer-admin">
+    <button id="adminBtn">⚙️ Admin</button>
+  </div>
 </div>
 
 <script>
@@ -432,6 +467,9 @@ window.addEventListener('message', function(ev) {
     { id:'bovina', name:'Marmita Bovina', price:28, img:'images/marmita_bovina.png', cls:'meal', desc:'Arroz, feijão, farofa, vinagrete e churrasco bovino.' },
     { id:'refrigerante', name:'Refrigerante Lata', price:5, img:'images/refrigerante_lata.png', cls:'drink', desc:'Coca-Cola, Fanta, Guaraná, Soda Limonada Geladas!' },
     { id:'suco', name:'Sucos Gelados', price:7, img:'images/sucos_gelados.png', cls:'drink', desc:'Diversos sabores, para acompanhar!' },
+    { id:'mate-couro', name:'Mate Couro 1L', price:8, img:'images/mate_couro_1l.png', cls:'drink', desc:'Mate Couro 1L gelado.' },
+    { id:'guarana-2l', name:'Guaraná 2L', price:12, img:'images/guarana_2l.png', cls:'drink', desc:'Guaraná 2L para compartilhar.' },
+    { id:'coca-2l', name:'Coca-Cola 2L', price:14, img:'images/coca_2l.png', cls:'drink', desc:'Coca-Cola 2L bem gelada.' },
   ];
   const cart = Object.fromEntries(products.map(p => [p.id, 0]));
 
@@ -446,6 +484,24 @@ window.addEventListener('message', function(ev) {
     'Ipê':9, 'Praia Angélica':9, 'Novo Santos Dumont':9, 'Recanto':9,
     'Aeronautas':10, 'Visão':10, 'Lagoinha':10
   };
+
+  // ── Configuração Supabase (opcional) ───────────────────────────────
+  // Crie uma conta grátis em supabase.com e um projeto.
+  // Depois, no SQL Editor, rode:
+  //   CREATE TABLE status (id bigint PRIMARY KEY, "isOpen" boolean DEFAULT true);
+  //   INSERT INTO status (id, "isOpen") VALUES (1, true);
+  //   -- Habilita acesso anônimo:
+  //   CREATE POLICY "anon_all" ON status FOR ALL USING (true) WITH CHECK (true);
+  //   ALTER TABLE status ENABLE ROW LEVEL SECURITY;
+  // Copie a URL do projeto e a chave anon (Settings > API) nos campos abaixo.
+  const SUPABASE = {
+    url: 'https://eszmbpviuhkrmwhemhqn.supabase.co',   // Ex: 'https://xxxxx.supabase.co'
+    key: 'sb_publishable_ObR_oZX8pJ6dzG69nztXjg_xH3NZSpr',   // Ex: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' (anon key)
+    table: 'status'
+  };
+
+  let isOpen = true;
+  const ADMIN_PASSWORD = 'bdg2026';
 
   const fmt = value => value.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
   const productsEl = document.getElementById('products');
@@ -466,14 +522,95 @@ window.addEventListener('message', function(ev) {
     statusEl.className = 'status';
   }
 
+  // ── Sincronia com Supabase ─────────────────────────────────────────
+  // Lê o status do banco (acesso anônimo, sem segredo no código)
+  async function loadRemoteStatus(){
+    if(SUPABASE.url && SUPABASE.key){
+      try {
+        var resp = await fetch(SUPABASE.url + '/rest/v1/' + SUPABASE.table + '?id=eq.1&select=isOpen', {
+          headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
+        });
+        if(resp.ok){
+          var data = await resp.json();
+          if(data && data.length > 0 && typeof data[0].isOpen === 'boolean'){
+            isOpen = data[0].isOpen;
+            localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
+            return true;
+          }
+        }
+      } catch(e){}
+    }
+    // Fallback: tenta ler do status.json público no GitHub Pages
+    try {
+      var resp = await fetch('status.json');
+      if(resp.ok){
+        var data = await resp.json();
+        if(typeof data.isOpen === 'boolean'){
+          isOpen = data.isOpen;
+          localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
+          return true;
+        }
+      }
+    } catch(e){}
+    return false;
+  }
+  // Atualiza o status no Supabase
+  async function supabaseSync(open){
+    if(!SUPABASE.url || !SUPABASE.key) return false;
+    try {
+      var resp = await fetch(SUPABASE.url + '/rest/v1/' + SUPABASE.table + '?id=eq.1', {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE.key,
+          'Authorization': 'Bearer ' + SUPABASE.key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ isOpen: open })
+      });
+      return resp.ok;
+    } catch(e){ return false; }
+  }
+
+  function adminLogin(){
+    document.getElementById('adminModal').classList.add('active');
+    document.getElementById('adminPwd').value = '';
+    document.getElementById('adminError').className = 'admin-error';
+    document.getElementById('adminPwd').focus();
+  }
+
+  function adminSubmit(){
+    const pwd = document.getElementById('adminPwd').value;
+    const errEl = document.getElementById('adminError');
+    if(!pwd) { errEl.textContent = 'Digite a senha.'; errEl.className = 'admin-error active'; return; }
+    if(pwd.toLowerCase() === ADMIN_PASSWORD){
+      document.getElementById('adminModal').classList.remove('active');
+      isOpen = !isOpen;
+      localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
+      if(SUPABASE.key && SUPABASE.url){
+        supabaseSync(isOpen);
+      }
+      render();
+      showStatus(isOpen ? '✅ Cardápio aberto para pedidos!' : '🛑 ESTAMOS FECHADOS NESTE MOMENTO. Pedidos desativados.');
+    } else {
+      errEl.textContent = 'Senha incorreta!'; errEl.className = 'admin-error active';
+    }
+  }
+
+  function adminCancel(){
+    document.getElementById('adminModal').classList.remove('active');
+  }
+
   function updateQty(id, delta){
+    if(!isOpen) return;
     cart[id] = Math.max(0, cart[id] + delta);
     render();
   }
 
   function renderProducts(){
+    const disabled = isOpen ? '' : 'disabled';
     productsEl.innerHTML = products.map(p => `
-      <div class="product">
+      <div class="product${!isOpen ? ' dimmed' : ''}">
         <div class="thumb ${p.cls}"><img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div>
         <div>
           <h3>${p.name}</h3>
@@ -481,9 +618,9 @@ window.addEventListener('message', function(ev) {
           <div class="row">
             <div class="price">${fmt(p.price)}</div>
             <div class="qty">
-              <button aria-label="Diminuir ${p.name}" data-id="${p.id}" data-delta="-1">−</button>
+              <button aria-label="Diminuir ${p.name}" data-id="${p.id}" data-delta="-1" ${disabled}>−</button>
               <div class="qty-value">${cart[p.id]}</div>
-              <button aria-label="Adicionar ${p.name}" data-id="${p.id}" data-delta="1">+</button>
+              <button aria-label="Adicionar ${p.name}" data-id="${p.id}" data-delta="1" ${disabled}>+</button>
             </div>
           </div>
         </div>
@@ -522,12 +659,15 @@ window.addEventListener('message', function(ev) {
   }
 
   function render(){
+    const banner = document.getElementById('closedBanner');
+    if(banner) banner.classList.toggle('active', !isOpen);
     renderProducts();
     renderCart();
     _reportHeight();
   }
 
   document.getElementById('finishBtn').addEventListener('click', () => {
+    if(!isOpen) return showStatus('🛑 Fechado por enquanto. Volte mais tarde!');
     clearStatus();
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
@@ -570,6 +710,20 @@ window.addEventListener('message', function(ev) {
 
   document.getElementById('neighborhood').addEventListener('change', () => render());
 
-  render();
+  document.getElementById('adminBtn').addEventListener('click', adminLogin);
+  document.getElementById('adminPwdSubmit').addEventListener('click', adminSubmit);
+  document.getElementById('adminPwdCancel').addEventListener('click', adminCancel);
+  document.getElementById('adminPwd').addEventListener('keydown', e => { if(e.key === 'Enter') adminSubmit(); });
+
+  // ── Inicialização assíncrona ───────────────────────────────────────
+  (async function(){
+    var s = new URLSearchParams(window.location.search).get('status');
+    if(s === 'fechado') isOpen = false;
+    else if(s === 'aberto') isOpen = true;
+    else if(!(await loadRemoteStatus())){
+      isOpen = localStorage.getItem('churrasco_open') !== 'false';
+    }
+    render();
+  })();
 </script></body>
 </html>
