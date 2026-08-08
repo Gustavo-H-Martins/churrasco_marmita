@@ -318,8 +318,8 @@ window.addEventListener('message', function(ev) {
   .closed-banner{display:none;padding:12px 16px;background:rgba(239,68,68,.12);border:1px solid var(--color-border-error);border-radius:var(--radius-8);margin-bottom:var(--space-16);font-size:var(--text-small);font-weight:600;text-align:center}
   .closed-banner.active{display:block}
   .footer-admin{margin-top:var(--space-24);padding:var(--space-12) 0;text-align:center}
-  .footer-admin button{background:none;border:none;color:var(--color-text-tertiary);font-size:var(--text-caption);cursor:pointer;padding:4px 8px}
-  .footer-admin button:hover{color:var(--color-text-secondary)}
+  .footer-admin button,.footer-admin a{background:none;border:none;color:var(--color-text-tertiary);font-size:var(--text-caption);cursor:pointer;padding:4px 8px;text-decoration:none;font-family:inherit}
+  .footer-admin button:hover,.footer-admin a:hover{color:var(--color-text-secondary)}
   .product.dimmed{opacity:.6}
   .qty button:disabled{opacity:.35;cursor:not-allowed}
   .qty button:disabled:hover{border-color:var(--color-border-default)}
@@ -478,6 +478,7 @@ window.addEventListener('message', function(ev) {
   </div>
   <div class="footer-admin">
     <button id="adminBtn">⚙️ Admin</button>
+    <a href="pedidos/">📋 Pedidos</a>
   </div>
 </div>
 
@@ -593,6 +594,27 @@ window.addEventListener('message', function(ev) {
       });
       return resp.ok;
     } catch(e){ return false; }
+  }
+
+  // Salva um pedido na tabela `pedidos` do Supabase
+  async function saveOrder(order){
+    if(!SUPABASE.url || !SUPABASE.key) return false;
+    try {
+      var resp = await fetch(SUPABASE.url + '/rest/v1/pedidos', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE.key,
+          'Authorization': 'Bearer ' + SUPABASE.key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(order)
+      });
+      return resp.ok;
+    } catch(e){
+      console.error('Falha ao salvar pedido no Supabase:', e);
+      return false;
+    }
   }
 
   function adminLogin(){
@@ -733,6 +755,24 @@ window.addEventListener('message', function(ev) {
     if (typeof sendPrompt === 'function') {
       sendPrompt(`Pedido iniciado no WhatsApp para Churrasco na Marmita. Cliente: ${name}.`);
     }
+
+    // Salva o pedido na tabela `pedidos` do Supabase (silencioso — falhas só vão ao console)
+    saveOrder({
+      cliente: name,
+      telefone: phone,
+      bairro: neighborhood,
+      endereco: address || null,
+      pagamento: payment,
+      itens: selected.map(p => ({
+        produto: p.name,
+        quantidade: cart[p.id],
+        preco_unitario: p.price,
+        subtotal: cart[p.id] * p.price
+      })),
+      subtotal: subtotal,
+      frete: shipping,
+      total: total
+    });
   });
 
   document.getElementById('neighborhood').addEventListener('change', () => render());

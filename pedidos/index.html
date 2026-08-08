@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<style>
+:root {
+  --color-brand-primary: #232425;
+  --color-brand-secondary: #0F7FFF;
+  --color-bg-page: #FFFFFF;
+  --color-bg-surface: #FAFAFA;
+  --color-bg-subtle: #F5F5F5;
+  --color-text-primary: #232425;
+  --color-text-secondary: #606366;
+  --color-text-tertiary: #909499;
+  --color-text-on-brand: #FFFFFF;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-border-default: #EAEAEA;
+  --color-border-strong: #D0D3D8;
+  --color-border-subtle: #F2F2F2;
+  --color-border-error: #EF4444;
+  --color-border-success: #10B981;
+  --space-4: 4px; --space-8: 8px; --space-12: 12px; --space-16: 16px;
+  --space-20: 20px; --space-24: 24px; --space-32: 32px;
+  --text-h1: 36px; --text-h2: 28px; --text-h3: 22px; --text-h4: 18px;
+  --text-body: 16px; --text-small: 14px; --text-caption: 12px;
+  --radius-4: 4px; --radius-8: 8px; --radius-12: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --color-cat-blue-400:#0F7FFF;
+}
+html[data-theme="dark"] {
+  --color-brand-primary: #E8E9EA;
+  --color-brand-secondary: #4a9eff;
+  --color-bg-page: #1A1B1C;
+  --color-bg-surface: #232425;
+  --color-bg-subtle: #2A2B2C;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #B8BBBF;
+  --color-text-tertiary: #868B92;
+  --color-text-on-brand: #1A1B1C;
+  --color-border-default: #3A3B3C;
+  --color-border-strong: #4A4C4F;
+  --color-border-subtle: #2E2F30;
+  --color-border-error: #f87171;
+  --color-border-success: #34d399;
+}
+:root { color-scheme: dark; }
+html, body { margin:0; padding:0; background:transparent !important; box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Inter','Helvetica Neue',Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC','Noto Sans JP','Noto Sans KR',system-ui,sans-serif,'Apple Color Emoji','Segoe UI Emoji'; }
+*, *::before, *::after { box-sizing:inherit; }
+
+.page{max-width:1100px;margin:0 auto;padding:var(--space-24);color:var(--color-text-primary)}
+.header{display:flex;align-items:center;justify-content:space-between;gap:var(--space-16);flex-wrap:wrap;margin-bottom:var(--space-20)}
+.header h1{margin:0;font-size:var(--text-h3)}
+.header p{margin:4px 0 0 0;color:var(--color-text-secondary);font-size:var(--text-small)}
+.badge{background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:999px;padding:6px 12px;font-size:var(--text-caption);color:var(--color-text-secondary)}
+
+.toolbar{display:flex;align-items:center;gap:var(--space-12);flex-wrap:wrap;margin-bottom:var(--space-16)}
+.toolbar label{font-size:var(--text-small);color:var(--color-text-secondary)}
+.toolbar select{padding:8px 10px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+.toolbar .spacer{flex:1}
+.btn{padding:10px 16px;border:none;border-radius:var(--radius-8);background:var(--color-brand-primary);color:var(--color-text-on-brand);font-size:var(--text-small);font-weight:700;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
+
+.status{display:none;padding:10px 14px;border-radius:10px;font-size:var(--text-small);margin-bottom:var(--space-16)}
+.status.active{display:block}
+.status.ok{background:rgba(16,185,129,.12);border:1px solid var(--color-border-success);color:var(--color-text-primary)}
+.status.err{background:rgba(239,68,68,.10);border:1px solid var(--color-border-error);color:var(--color-text-primary)}
+.status.info{background:rgba(15,127,255,.10);border:1px solid var(--color-brand-secondary);color:var(--color-text-primary)}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--color-border-default);border-radius:var(--radius-12);background:var(--color-bg-surface)}
+table{width:100%;border-collapse:collapse;font-size:var(--text-small);min-width:760px}
+thead th{position:sticky;top:0;background:var(--color-bg-subtle);color:var(--color-text-secondary);font-size:var(--text-caption);text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:10px 12px;border-bottom:1px solid var(--color-border-default);white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--color-border-subtle);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--color-bg-subtle)}
+tbody tr.done{opacity:.55}
+tbody tr.done td .done-tag{color:var(--color-success)}
+.empty{text-align:center;color:var(--color-text-tertiary);padding:24px !important}
+.fin-check{width:18px;height:18px;accent-color:var(--color-success);cursor:pointer}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,'Courier New',monospace}
+.cell-dim{color:var(--color-text-tertiary)}
+
+.pagination{display:flex;align-items:center;justify-content:center;gap:var(--space-12);margin-top:var(--space-16)}
+.pagination button{padding:8px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);cursor:pointer;font-family:inherit;font-size:var(--text-small)}
+.pagination button:disabled{opacity:.35;cursor:not-allowed}
+.pagination span{font-size:var(--text-small);color:var(--color-text-secondary)}
+
+.footer{margin-top:var(--space-24);text-align:center;color:var(--color-text-tertiary);font-size:var(--text-caption)}
+.footer a{color:var(--color-brand-secondary);text-decoration:none}
+
+.modal{position:fixed;inset:0;z-index:999;display:none;place-items:center;background:rgba(0,0,0,.6)}
+.modal.active{display:grid}
+.modal-content{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:var(--space-24);max-width:320px;width:90%;display:grid;gap:var(--space-12)}
+.modal-content h3{margin:0;font-size:var(--text-h4)}
+.modal-content input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+.modal-actions{display:flex;gap:var(--space-8)}
+.modal-actions button{flex:1;padding:10px;border:none;border-radius:var(--radius-8);font-weight:600;cursor:pointer;font-size:var(--text-small);font-family:inherit}
+.modal-actions button:first-child{background:var(--color-brand-primary);color:var(--color-text-on-brand)}
+.modal-actions button:last-child{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
+.modal-error{font-size:var(--text-caption);color:var(--color-error);display:none}
+.modal-error.active{display:block}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>📋 Pedidos — Churrasco na Marmita</h1>
+      <p>Lista de pedidos salvos. Atualize a página (F5) para ver os pedidos mais recentes.</p>
+    </div>
+    <span class="badge" id="connBadge">Conectando…</span>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <div class="toolbar">
+    <label for="perPage">Itens por página:</label>
+    <select id="perPage">
+      <option value="20" selected>20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    <span class="spacer"></span>
+    <span id="pendingInfo" class="badge" style="display:none"></span>
+    <button id="saveBtn" class="btn" disabled>💾 Salvar alterações</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Cliente</th>
+          <th>Telefone</th>
+          <th>Bairro</th>
+          <th>Pagamento</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Finalizado por (IP)</th>
+          <th>Finalizado?</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody">
+        <tr><td colspan="9" class="empty">Carregando pedidos…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <button id="prevBtn">← Anterior</button>
+    <span id="pageInfo">—</span>
+    <button id="nextBtn">Próxima →</button>
+  </div>
+
+  <div class="footer">
+    <a href="../index.html">← Voltar ao cardápio</a>
+  </div>
+</div>
+
+<div id="authModal" class="modal active">
+  <div class="modal-content">
+    <h3>🔒 Acesso restrito</h3>
+    <input type="password" id="authPwd" placeholder="Digite a senha" />
+    <div id="authError" class="modal-error"></div>
+    <div class="modal-actions">
+      <button id="authSubmit">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Configuração Supabase (mesma do cardápio) ──────────────────────
+  const SUPABASE = {
+    url: 'https://eszmbpviuhkrmwhemhqn.supabase.co',
+    key: 'sb_publishable_ObR_oZX8pJ6dzG69nztXjg_xH3NZSpr'
+  };
+  const ADMIN_PASSWORD = 'bdg2026';
+
+  const authHeaders = {
+    'apikey': SUPABASE.key,
+    'Authorization': 'Bearer ' + SUPABASE.key
+  };
+
+  let orders = [];
+  let page = 1;
+  let perPage = 20;
+  let total = 0;
+  const dirty = new Map(); // id -> finalizado (true/false)
+
+  const statusEl = document.getElementById('status');
+  const bodyEl = document.getElementById('ordersBody');
+  const pageInfoEl = document.getElementById('pageInfo');
+  const saveBtn = document.getElementById('saveBtn');
+  const pendingInfo = document.getElementById('pendingInfo');
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+  function fmtMoney(v){ return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+  function fmtDate(iso){
+    if(!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    } catch(e){ return iso; }
+  }
+  function showStatus(msg, type){
+    statusEl.textContent = msg;
+    statusEl.className = 'status active ' + (type || 'ok');
+  }
+  function hideStatus(){ statusEl.className = 'status'; }
+
+  // ── Carregamento (executado a cada F5) ─────────────────────────────
+  async function loadOrders(){
+    bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Carregando pedidos…</td></tr>';
+    document.getElementById('connBadge').textContent = 'Atualizando…';
+    try {
+      const rangeStart = (page - 1) * perPage;
+      const resp = await fetch(SUPABASE.url + '/rest/v1/pedidos?select=*&order=created_at.desc&limit=' + perPage + '&offset=' + rangeStart, {
+        headers: Object.assign({ 'Prefer': 'count=exact' }, authHeaders)
+      });
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
+      const cr = resp.headers.get('content-range');
+      if(cr){
+        const m = cr.match(/\/(\d+)$/);
+        if(m) total = Number(m[1]);
+      }
+      orders = await resp.json();
+      document.getElementById('connBadge').textContent = '🟢 ' + (total || orders.length) + ' pedido(s)';
+      render();
+    } catch(e){
+      document.getElementById('connBadge').textContent = '🔴 Falha na conexão';
+      bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Erro ao carregar pedidos: ' + esc(e.message) + '</td></tr>';
+      showStatus('Não foi possível carregar os pedidos. Verifique a conexão e a política de SELECT da tabela.', 'err');
+    }
+  }
+
+  function render(){
+    if(!orders.length){
+      bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Nenhum pedido encontrado.</td></tr>';
+    } else {
+      bodyEl.innerHTML = orders.map(o => {
+        const checked = o.finalizado ? 'checked' : '';
+        const done = o.finalizado ? ' done' : '';
+        return `<tr class="${done}">
+          <td>${fmtDate(o.created_at)}</td>
+          <td><strong>${esc(o.cliente)}</strong></td>
+          <td>${esc(o.telefone)}</td>
+          <td>${esc(o.bairro)}</td>
+          <td>${esc(o.pagamento)}</td>
+          <td><strong>${fmtMoney(o.total)}</strong></td>
+          <td>${o.finalizado ? '<span class="done-tag">✅ Finalizado</span>' : '<span class="cell-dim">⏳ Pendente</span>'}</td>
+          <td class="mono cell-dim">${esc(o.finalizado_por || '—')}</td>
+          <td><input type="checkbox" class="fin-check" data-id="${esc(o.id)}" ${checked} /></td>
+        </tr>`;
+      }).join('');
+      bodyEl.querySelectorAll('.fin-check').forEach(cb => {
+        cb.addEventListener('change', () => {
+          dirty.set(cb.dataset.id, cb.checked);
+          updateDirtyUI();
+        });
+      });
+    }
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    pageInfoEl.textContent = 'Página ' + page + ' de ' + totalPages + ' · ' + total + ' pedido(s)';
+    document.getElementById('prevBtn').disabled = page <= 1;
+    document.getElementById('nextBtn').disabled = page >= totalPages;
+  }
+
+  function updateDirtyUI(){
+    if(dirty.size > 0){
+      saveBtn.disabled = false;
+      pendingInfo.style.display = 'inline-flex';
+      pendingInfo.textContent = '⚠️ ' + dirty.size + ' alteração(ões) pendente(s)';
+    } else {
+      saveBtn.disabled = true;
+      pendingInfo.style.display = 'none';
+    }
+  }
+
+  // ── IP de quem salvou ──────────────────────────────────────────────
+  async function getIP(){
+    try {
+      const r = await fetch('https://api.ipify.org?format=json');
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      if(d.ip) return d.ip;
+    } catch(e){}
+    try {
+      const r2 = await fetch('https://ipapi.co/json/');
+      if(!r2.ok) throw 0;
+      const d2 = await r2.json();
+      if(d2.ip) return d2.ip;
+    } catch(e2){}
+    return null;
+  }
+
+  // ── Salvar alterações ──────────────────────────────────────────────
+  async function saveChanges(){
+    if(dirty.size === 0){ showStatus('Nenhuma alteração para salvar.', 'info'); return; }
+    saveBtn.disabled = true;
+    showStatus('Obtendo IP e salvando…', 'info');
+    const ip = (await getIP()) || 'desconhecido';
+    const now = new Date().toISOString();
+    let okCount = 0, failCount = 0;
+    for(const [id, finalizado] of dirty){
+      const body = {
+        finalizado: finalizado,
+        finalizado_por: ip,
+        finalizado_em: finalizado ? now : null
+      };
+      try {
+        const resp = await fetch(SUPABASE.url + '/rest/v1/pedidos?id=eq.' + encodeURIComponent(id), {
+          method: 'PATCH',
+          headers: Object.assign({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, authHeaders),
+          body: JSON.stringify(body)
+        });
+        if(resp.ok) okCount++; else failCount++;
+      } catch(e){ failCount++; }
+    }
+    dirty.clear();
+    updateDirtyUI();
+    if(failCount === 0){
+      showStatus('✅ ' + okCount + ' pedido(s) atualizado(s). IP de quem salvou: ' + ip);
+    } else {
+      showStatus('⚠️ ' + okCount + ' salvo(s), ' + failCount + ' falhou(ram). Confira a política de UPDATE.', 'err');
+    }
+    await loadOrders();
+  }
+
+  // ── Autenticação simples (mesma senha do admin) ────────────────────
+  function requireAuth(){
+    if(sessionStorage.getItem('churrasco_pedidos_auth') === '1') return;
+    document.getElementById('authModal').classList.add('active');
+    document.getElementById('authPwd').focus();
+  }
+  function authSubmit(){
+    const pwd = document.getElementById('authPwd').value;
+    const errEl = document.getElementById('authError');
+    if(pwd.toLowerCase() === ADMIN_PASSWORD){
+      sessionStorage.setItem('churrasco_pedidos_auth', '1');
+      document.getElementById('authModal').classList.remove('active');
+      loadOrders();
+    } else {
+      errEl.textContent = 'Senha incorreta!';
+      errEl.className = 'modal-error active';
+    }
+  }
+
+  // ── Eventos ────────────────────────────────────────────────────────
+  document.getElementById('perPage').addEventListener('change', e => {
+    perPage = Number(e.target.value);
+    page = 1;
+    loadOrders();
+  });
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if(page > 1){ page--; loadOrders(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    if(page < totalPages){ page++; loadOrders(); }
+  });
+  document.getElementById('saveBtn').addEventListener('click', saveChanges);
+  document.getElementById('authSubmit').addEventListener('click', authSubmit);
+  document.getElementById('authPwd').addEventListener('keydown', e => { if(e.key === 'Enter') authSubmit(); });
+
+  // ── Inicialização ──────────────────────────────────────────────────
+  requireAuth();
+  // Cada F5 recarrega a página e refaz o fetch com os dados mais recentes
+  if(sessionStorage.getItem('churrasco_pedidos_auth') === '1'){
+    loadOrders();
+  }
+</script>
+</body>
+</html>
