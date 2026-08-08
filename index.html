@@ -311,6 +311,7 @@ window.addEventListener('message', function(ev) {
   .cta button,.cta a{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:14px 16px;border:none;border-radius:12px;background:var(--color-brand-primary);color:var(--color-text-on-brand);font-size:var(--text-body);font-weight:700;text-decoration:none;cursor:pointer;min-height:48px}
   .cta .ghost{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
   .note{font-size:var(--text-caption);color:var(--color-text-secondary);line-height:1.35}
+  .welcome-banner{padding:12px 16px;background:linear-gradient(135deg,var(--color-brand-secondary),var(--color-cat-blue-400));color:#fff;border-radius:var(--radius-12);font-weight:700;text-align:center;font-size:var(--text-body);margin-bottom:var(--space-16)}
   .status{display:none;padding:12px 14px;border-radius:10px;font-size:var(--text-small)}
   .status.error{display:block;background:rgba(239,68,68,.10);color:var(--color-text-primary);border:1px solid var(--color-border-error)}
   @media(min-width:900px){.layout{grid-template-columns:1.2fr .8fr}}
@@ -336,6 +337,7 @@ window.addEventListener('message', function(ev) {
 </style>
 
 <div class="menu-app">
+  <div class="welcome-banner">Bem vindo ao Churrasco na Marmita Lagoa Santa - MG</div>
   <div class="hero">
     <div class="brand">
       <div class="logo"><img src="images/logo.png" alt="Churrasco na Marmita" style="width:100%;height:100%;object-fit:cover;border-radius:14px;" /></div>
@@ -412,11 +414,30 @@ window.addEventListener('message', function(ev) {
                 <option value="Aeronautas">Aeronautas</option>
                 <option value="Visão">Visão</option>
                 <option value="Lagoinha">Lagoinha</option>
+                <option value="Lundceia">Lundceia</option>
+                <option value="Recanto do Poeta">Recanto do Poeta</option>
+                <optgroup label="Condomínios">
+                  <option value="Amendoeiras">Amendoeiras</option>
+                  <option value="Mirante do Fidalgo">Mirante do Fidalgo</option>
+                  <option value="Bouganvile">Bouganvile</option>
+                  <option value="Maripousas">Maripousas</option>
+                  <option value="Trilhas do Sol">Trilhas do Sol</option>
+                </optgroup>
               </select>
             </div>
             <div>
               <label class="label" for="address">Endereço</label>
               <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
+            </div>
+            <div>
+              <label class="label" for="payment">Forma de pagamento</label>
+              <select id="payment" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
+                <option value="">Selecione a forma de pagamento...</option>
+                <option value="Cartão de crédito">Cartão de crédito</option>
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de débito">Cartão de Débito</option>
+              </select>
             </div>
           </div>
         </div>
@@ -465,7 +486,7 @@ window.addEventListener('message', function(ev) {
     { id:'mista', name:'Marmita Mista', price:23, img:'images/marmita_mista.jpg', cls:'meal', desc:'Arroz, farofa, vinagrete e churrasco misto (carne bovina, carne suína e linguiça).' },
     { id:'mista-completa', name:'Marmita Mista Completa', price:25, img:'images/marmita_mista_completa.png', cls:'meal', desc:'Arroz, feijão, farofa, vinagrete e churrasco misto (carne bovina, carne suína e linguiça).' },
     { id:'bovina', name:'Marmita Bovina', price:28, img:'images/marmita_bovina.png', cls:'meal', desc:'Arroz, feijão, farofa, vinagrete e churrasco bovino.' },
-    { id:'refrigerante', name:'Refrigerante Lata', price:5, img:'images/refrigerante_lata.png', cls:'drink', desc:'Coca-Cola, Fanta, Guaraná, Soda Limonada Geladas!' },
+    { id:'refrigerante', name:'Refrigerante Lata 220ml', price:5, img:'images/refrigerante_lata.png', cls:'drink', desc:'Lata 220ml: Coca-Cola, Fanta, Guaraná, Soda Limonada, geladas!' },
     { id:'suco', name:'Sucos Gelados', price:7, img:'images/sucos_gelados.png', cls:'drink', desc:'Diversos sabores, para acompanhar!' },
     { id:'mate-couro', name:'Mate Couro 1L', price:8, img:'images/mate_couro_1l.png', cls:'drink', desc:'Mate Couro 1L gelado.' },
     { id:'guarana-2l', name:'Guaraná 2L', price:12, img:'images/guarana_2l.png', cls:'drink', desc:'Guaraná 2L para compartilhar.' },
@@ -482,7 +503,9 @@ window.addEventListener('message', function(ev) {
     'Várzea':7, 'Bela Vista':7,
     'Joa':8, 'Santos Dumont':8, 'Ovídeo Guerra':8,
     'Ipê':9, 'Praia Angélica':9, 'Novo Santos Dumont':9, 'Recanto':9,
-    'Aeronautas':10, 'Visão':10, 'Lagoinha':10
+    'Aeronautas':10, 'Visão':10, 'Lagoinha':10,
+    'Lundceia':6, 'Recanto do Poeta':10,
+    'Amendoeiras':10, 'Mirante do Fidalgo':5, 'Bouganvile':10, 'Maripousas':5, 'Trilhas do Sol':5
   };
 
   // ── Configuração Supabase (opcional) ───────────────────────────────
@@ -674,11 +697,14 @@ window.addEventListener('message', function(ev) {
     const address = document.getElementById('address').value.trim();
     const neighborhoodEl = document.getElementById('neighborhood');
     const neighborhood = neighborhoodEl.value;
+    const paymentEl = document.getElementById('payment');
+    const payment = paymentEl.value;
     const selected = products.filter(p => cart[p.id] > 0);
 
     if(!name) return showStatus('Preencha o nome do cliente.');
     if(!phone) return showStatus('Preencha o telefone do cliente.');
     if(!neighborhood) return showStatus('Selecione o bairro para calcular o frete.');
+    if(!payment) return showStatus('Selecione a forma de pagamento.');
     if(!selected.length) return showStatus('Adicione pelo menos um item ao pedido.');
 
     const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
@@ -692,6 +718,7 @@ window.addEventListener('message', function(ev) {
       `*Telefone:* ${phone}`,
       `*Bairro:* ${neighborhood}`,
       address ? `*Endereço:* ${address}` : '*Endereço:* não informado',
+      `*Pagamento:* ${payment}`,
       '',
       '*Pedido:*',
       itemsText.replace(/%0A/g,'\n'),
