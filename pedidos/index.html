@@ -58,6 +58,20 @@ html, body { margin:0; padding:0; background:transparent !important; box-sizing:
 .header p{margin:4px 0 0 0;color:var(--color-text-secondary);font-size:var(--text-small)}
 .badge{background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:999px;padding:6px 12px;font-size:var(--text-caption);color:var(--color-text-secondary)}
 
+/* Filtros */
+.filters{display:flex;gap:var(--space-8);flex-wrap:wrap;margin-bottom:var(--space-12)}
+.filter-btn{padding:9px 14px;border:1px solid var(--color-border-default);border-radius:999px;background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-weight:600;cursor:pointer;font-family:inherit}
+.filter-btn:hover{border-color:var(--color-border-strong)}
+.filter-btn.active{background:var(--color-brand-primary);color:var(--color-text-on-brand);border-color:var(--color-brand-primary)}
+.date-range{display:flex;align-items:center;gap:var(--space-8);flex-wrap:wrap;margin-bottom:var(--space-12);padding:10px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-subtle)}
+.date-range label{font-size:var(--text-small);color:var(--color-text-secondary)}
+.date-range input{padding:8px 10px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+
+/* Resumo dos listados */
+.summary-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-12);flex-wrap:wrap;padding:12px 16px;border:1px solid var(--color-border-default);border-radius:var(--radius-12);background:var(--color-bg-surface);margin-bottom:var(--space-16)}
+.summary-bar .info{font-size:var(--text-small);color:var(--color-text-secondary)}
+.summary-bar .total{font-size:var(--text-h4);font-weight:800}
+
 .toolbar{display:flex;align-items:center;gap:var(--space-12);flex-wrap:wrap;margin-bottom:var(--space-16)}
 .toolbar label{font-size:var(--text-small);color:var(--color-text-secondary)}
 .toolbar select{padding:8px 10px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
@@ -73,17 +87,46 @@ html, body { margin:0; padding:0; background:transparent !important; box-sizing:
 .status.info{background:rgba(15,127,255,.10);border:1px solid var(--color-brand-secondary);color:var(--color-text-primary)}
 
 .table-wrap{overflow-x:auto;border:1px solid var(--color-border-default);border-radius:var(--radius-12);background:var(--color-bg-surface)}
-table{width:100%;border-collapse:collapse;font-size:var(--text-small);min-width:760px}
+table{width:100%;border-collapse:collapse;font-size:var(--text-small);min-width:820px}
 thead th{position:sticky;top:0;background:var(--color-bg-subtle);color:var(--color-text-secondary);font-size:var(--text-caption);text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:10px 12px;border-bottom:1px solid var(--color-border-default);white-space:nowrap}
 tbody td{padding:10px 12px;border-bottom:1px solid var(--color-border-subtle);vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--color-bg-subtle)}
-tbody tr.done{opacity:.55}
-tbody tr.done td .done-tag{color:var(--color-success)}
+tbody tr.done{opacity:.65}
 .empty{text-align:center;color:var(--color-text-tertiary);padding:24px !important}
 .fin-check{width:18px;height:18px;accent-color:var(--color-success);cursor:pointer}
-.mono{font-family:ui-monospace,SFMono-Regular,Consolas,'Courier New',monospace}
 .cell-dim{color:var(--color-text-tertiary)}
+.tag{display:inline-block;padding:3px 8px;border-radius:999px;font-size:var(--text-caption);font-weight:700;margin:1px 0}
+.tag.pago{background:rgba(16,185,129,.15);color:var(--color-success);border:1px solid var(--color-border-success)}
+.tag.aberto{background:rgba(245,158,11,.15);color:var(--color-warning);border:1px solid var(--color-border-default)}
+.tag.impresso{background:rgba(15,127,255,.15);color:var(--color-brand-secondary);border:1px solid var(--color-border-default)}
+.tag.cancelado{background:rgba(239,68,68,.15);color:var(--color-error);border:1px solid var(--color-border-error)}
+.act-btn{width:34px;height:34px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);cursor:pointer;font-size:15px;line-height:1}
+.act-btn:hover{border-color:var(--color-border-strong)}
+.act-btn.cancel:hover{border-color:var(--color-border-error)}
+.actions-cell{display:flex;gap:6px}
+.label{font-size:var(--text-small);font-weight:600;margin-bottom:6px;display:block}
+.modal-content textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;min-height:80px;resize:vertical}
+.cancel-info{font-size:var(--text-small);color:var(--color-text-secondary);padding:10px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-subtle)}
+.hint{font-size:var(--text-caption);color:var(--color-text-tertiary);display:block;margin:-2px 0 8px 0;line-height:1.3}
+.ciencia-list{display:grid;gap:6px}
+.ciencia-opt{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);font-size:var(--text-small);cursor:pointer}
+.ciencia-opt:hover{border-color:var(--color-border-strong)}
+.ciencia-opt input{accent-color:var(--color-error);width:16px;height:16px}
+
+/* Responsividade da tabela: oculta colunas menos essenciais em telas menores */
+@media(max-width:900px){
+  table{min-width:0;width:100%}
+  thead th:nth-child(3), tbody td:nth-child(3),
+  thead th:nth-child(4), tbody td:nth-child(4){display:none}
+}
+@media(max-width:640px){
+  table{min-width:0;width:100%;table-layout:fixed;font-size:var(--text-caption)}
+  thead th, tbody td{padding:8px 6px;overflow-wrap:anywhere;word-break:break-word;white-space:normal}
+  thead th:nth-child(5), tbody td:nth-child(5),
+  thead th:nth-child(7), tbody td:nth-child(7){display:none}
+  .act-btn{width:30px;height:30px;font-size:13px}
+}
 
 .pagination{display:flex;align-items:center;justify-content:center;gap:var(--space-12);margin-top:var(--space-16)}
 .pagination button{padding:8px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);cursor:pointer;font-family:inherit;font-size:var(--text-small)}
@@ -93,17 +136,49 @@ tbody tr.done td .done-tag{color:var(--color-success)}
 .footer{margin-top:var(--space-24);text-align:center;color:var(--color-text-tertiary);font-size:var(--text-caption)}
 .footer a{color:var(--color-brand-secondary);text-decoration:none}
 
-.modal{position:fixed;inset:0;z-index:999;display:none;place-items:center;background:rgba(0,0,0,.6)}
+.modal{position:fixed;inset:0;z-index:999;display:none;place-items:center;background:rgba(0,0,0,.55);padding:var(--space-16);overflow:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .modal.active{display:grid}
-.modal-content{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:var(--space-24);max-width:320px;width:90%;display:grid;gap:var(--space-12)}
+.modal-content{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:var(--space-20);max-width:320px;width:100%;max-height:calc(100vh - 32px);overflow-y:auto;display:grid;gap:var(--space-12);min-width:0}
 .modal-content h3{margin:0;font-size:var(--text-h4)}
 .modal-content input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+.modal-content.wide{max-width:560px}
 .modal-actions{display:flex;gap:var(--space-8)}
-.modal-actions button{flex:1;padding:10px;border:none;border-radius:var(--radius-8);font-weight:600;cursor:pointer;font-size:var(--text-small);font-family:inherit}
+.modal-actions button{flex:1;min-width:0;white-space:nowrap;padding:10px;border:none;border-radius:var(--radius-8);font-weight:600;cursor:pointer;font-size:var(--text-small);font-family:inherit}
 .modal-actions button:first-child{background:var(--color-brand-primary);color:var(--color-text-on-brand)}
 .modal-actions button:last-child{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
 .modal-error{font-size:var(--text-caption);color:var(--color-error);display:none}
 .modal-error.active{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px 16px;font-size:var(--text-small);min-width:0}
+.detail-grid div{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.detail-grid div span{display:block;color:var(--color-text-tertiary);font-size:var(--text-caption);text-transform:uppercase;letter-spacing:.3px}
+.detail-grid .full{grid-column:1/-1}
+.detail-items{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;margin-top:6px}
+.detail-items th,.detail-items td{padding:6px 8px;border-bottom:1px solid var(--color-border-subtle);text-align:left;font-size:var(--text-small);overflow-wrap:anywhere;word-break:break-word}
+.detail-items th{color:var(--color-text-tertiary);font-size:var(--text-caption);text-transform:uppercase}
+.detail-items td:first-child{width:auto}
+.detail-items td:nth-child(2){width:60px}
+.detail-items td:last-child{width:110px;text-align:right}
+@media(max-width:480px){.detail-grid{grid-template-columns:1fr}}
+
+/* Etiqueta térmica adesiva 10 x 15 cm (100 x 150 mm) */
+#printArea{display:none}
+@media print{
+  body *{visibility:hidden}
+  #printArea, #printArea *{visibility:visible}
+  #printArea{display:block;position:absolute;left:0;top:0}
+  @page{size:100mm 150mm;margin:0}
+  .plabel{width:100mm;height:150mm;page-break-after:always;overflow:hidden;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
+}
+.plabel{width:100mm;height:150mm;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
+.l-brand{font-size:14px;font-weight:800;text-align:center;letter-spacing:.5px}
+.l-sub{text-align:center;font-size:9px;margin-bottom:3mm;color:#333}
+.l-cust{font-size:13px;font-weight:800;margin:2mm 0 1mm 0}
+.l-line{font-size:10px}
+.l-sep{border-top:1px dashed #999;margin:3mm 0}
+.l-items{font-size:12px;font-weight:700}
+.l-obs{font-size:9px;color:#333;margin-top:2mm;font-style:italic}
+.l-total{font-size:16px;font-weight:900;margin-top:3mm}
+.l-pay{font-size:10px;margin-top:1mm}
 </style>
 </head>
 <body>
@@ -111,12 +186,31 @@ tbody tr.done td .done-tag{color:var(--color-success)}
   <div class="header">
     <div>
       <h1>📋 Pedidos — Churrasco na Marmita</h1>
-      <p>Lista de pedidos salvos. Atualize a página (F5) para ver os pedidos mais recentes.</p>
+      <p>Atualiza automaticamente a cada 5 minutos, mantendo o filtro selecionado.</p>
     </div>
     <span class="badge" id="connBadge">Conectando…</span>
   </div>
 
   <div id="status" class="status"></div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="abertos">🕐 Pedidos em aberto</button>
+    <button class="filter-btn" data-filter="dia">📅 Pedidos do dia</button>
+    <button class="filter-btn" data-filter="todos">📋 Todos os pedidos</button>
+  </div>
+
+  <div id="dateRange" class="date-range" style="display:none">
+    <label for="dateStart">De:</label>
+    <input type="date" id="dateStart" />
+    <label for="dateEnd">Até:</label>
+    <input type="date" id="dateEnd" />
+    <button id="applyDates" class="btn ghost">Aplicar filtro</button>
+  </div>
+
+  <div class="summary-bar">
+    <span class="info" id="filterInfo">Filtro: Pedidos em aberto</span>
+    <span class="total" id="totalListed">Total: R$ 0,00</span>
+  </div>
 
   <div class="toolbar">
     <label for="perPage">Itens por página:</label>
@@ -127,6 +221,7 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     </select>
     <span class="spacer"></span>
     <span id="pendingInfo" class="badge" style="display:none"></span>
+    <button id="printAllBtn" class="btn ghost">🖨️ Imprimir etiquetas</button>
     <button id="saveBtn" class="btn" disabled>💾 Salvar alterações</button>
   </div>
 
@@ -141,8 +236,8 @@ tbody tr.done td .done-tag{color:var(--color-success)}
           <th>Pagamento</th>
           <th>Total</th>
           <th>Status</th>
-          <th>Finalizado por (IP)</th>
-          <th>Finalizado?</th>
+          <th>Pago?</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody id="ordersBody">
@@ -162,6 +257,42 @@ tbody tr.done td .done-tag{color:var(--color-success)}
   </div>
 </div>
 
+<div id="detailModal" class="modal">
+  <div class="modal-content wide">
+    <h3 id="detailTitle">Pedido</h3>
+    <div id="detailBody"></div>
+    <div class="modal-actions">
+      <button id="detailPrint">🖨️ Imprimir</button>
+      <button id="detailClose">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div id="cancelModal" class="modal">
+  <div class="modal-content wide">
+    <h3>❌ Cancelar pedido</h3>
+    <div id="cancelInfo" class="cancel-info"></div>
+    <div>
+      <label class="label" for="cancelMotivo">Justificativa do cancelamento *</label>
+      <textarea id="cancelMotivo" placeholder="Descreva o motivo do cancelamento..."></textarea>
+    </div>
+    <div>
+      <label class="label">Ciência do cancelamento *</label>
+      <span class="hint">Selecione pelo menos 1 nome para confirmar.</span>
+      <div class="ciencia-list">
+        <label class="ciencia-opt"><input type="checkbox" class="ciencia-check" value="Bruno" /> Bruno</label>
+        <label class="ciencia-opt"><input type="checkbox" class="ciencia-check" value="Diego" /> Diego</label>
+        <label class="ciencia-opt"><input type="checkbox" class="ciencia-check" value="Gustavo" /> Gustavo</label>
+      </div>
+    </div>
+    <div id="cancelError" class="modal-error"></div>
+    <div class="modal-actions">
+      <button id="cancelConfirm">❌ Confirmar cancelamento</button>
+      <button id="cancelClose">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div id="authModal" class="modal active">
   <div class="modal-content">
     <h3>🔒 Acesso restrito</h3>
@@ -172,6 +303,8 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     </div>
   </div>
 </div>
+
+<div id="printArea"></div>
 
 <script>
   // ── Configuração Supabase (mesma do cardápio) ──────────────────────
@@ -186,10 +319,13 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     'Authorization': 'Bearer ' + SUPABASE.key
   };
 
-  let orders = [];
+  let orders = [];        // todos os pedidos do filtro atual
   let page = 1;
   let perPage = 20;
   let total = 0;
+  let filter = 'abertos'; // abertos | dia | todos
+  let dateStart = '';
+  let dateEnd = '';
   const dirty = new Map(); // id -> finalizado (true/false)
 
   const statusEl = document.getElementById('status');
@@ -215,25 +351,50 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     statusEl.textContent = msg;
     statusEl.className = 'status active ' + (type || 'ok');
   }
-  function hideStatus(){ statusEl.className = 'status'; }
 
-  // ── Carregamento (executado a cada F5) ─────────────────────────────
+  // ── Filtros ────────────────────────────────────────────────────────
+  function filterLabel(){
+    if(filter === 'abertos') return 'Pedidos em aberto';
+    if(filter === 'dia') return 'Pedidos do dia';
+    let label = 'Todos os pedidos';
+    if(dateStart && dateEnd) label += ' (' + dateStart + ' até ' + dateEnd + ')';
+    else if(dateStart) label += ' (a partir de ' + dateStart + ')';
+    else if(dateEnd) label += ' (até ' + dateEnd + ')';
+    return label;
+  }
+  function updateFilterUI(){
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.filter === filter);
+    });
+    document.getElementById('dateRange').style.display = (filter === 'todos') ? 'flex' : 'none';
+    document.getElementById('filterInfo').textContent = 'Filtro: ' + filterLabel();
+  }
+
+  // ── Carregamento (executado a cada F5 e a cada 5 min) ──────────────
   async function loadOrders(){
     bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Carregando pedidos…</td></tr>';
     document.getElementById('connBadge').textContent = 'Atualizando…';
     try {
-      const rangeStart = (page - 1) * perPage;
-      const resp = await fetch(SUPABASE.url + '/rest/v1/pedidos?select=*&order=created_at.desc&limit=' + perPage + '&offset=' + rangeStart, {
-        headers: Object.assign({ 'Prefer': 'count=exact' }, authHeaders)
-      });
-      if(!resp.ok) throw new Error('HTTP ' + resp.status);
-      const cr = resp.headers.get('content-range');
-      if(cr){
-        const m = cr.match(/\/(\d+)$/);
-        if(m) total = Number(m[1]);
+      let q = SUPABASE.url + '/rest/v1/pedidos?select=*&order=created_at.desc';
+      if(filter === 'abertos'){
+        q += '&finalizado=eq.false';
+      } else if(filter === 'dia'){
+        const s = new Date(); s.setHours(0,0,0,0);
+        const e = new Date(); e.setHours(23,59,59,999);
+        q += '&created_at=gte.' + s.toISOString() + '&created_at=lte.' + e.toISOString();
+      } else if(filter === 'todos'){
+        if(dateStart){ const s = new Date(dateStart + 'T00:00:00'); q += '&created_at=gte.' + s.toISOString(); }
+        if(dateEnd){ const e = new Date(dateEnd + 'T23:59:59.999'); q += '&created_at=lte.' + e.toISOString(); }
       }
+      const resp = await fetch(q, { headers: Object.assign({ 'Prefer': 'count=exact' }, authHeaders) });
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
       orders = await resp.json();
-      document.getElementById('connBadge').textContent = '🟢 ' + (total || orders.length) + ' pedido(s)';
+      // Filtro "em aberto" exclui cancelados (resiliente: funciona mesmo sem a coluna ainda existir)
+      if(filter === 'abertos') orders = orders.filter(o => !o.cancelado);
+      total = orders.length;
+      const totalPages = Math.max(1, Math.ceil(total / perPage));
+      if(page > totalPages) page = totalPages;
+      document.getElementById('connBadge').textContent = '🟢 ' + total + ' pedido(s)';
       render();
     } catch(e){
       document.getElementById('connBadge').textContent = '🔴 Falha na conexão';
@@ -243,12 +404,26 @@ tbody tr.done td .done-tag{color:var(--color-success)}
   }
 
   function render(){
-    if(!orders.length){
+    // Total dos pedidos listados no filtro atual
+    const sumListed = orders.reduce((s,o) => s + Number(o.total||0), 0);
+    document.getElementById('totalListed').textContent = 'Total: ' + fmtMoney(sumListed);
+
+    const start = (page - 1) * perPage;
+    const pageOrders = orders.slice(start, start + perPage);
+
+    if(!pageOrders.length){
       bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Nenhum pedido encontrado.</td></tr>';
     } else {
-      bodyEl.innerHTML = orders.map(o => {
+      bodyEl.innerHTML = pageOrders.map(o => {
         const checked = o.finalizado ? 'checked' : '';
-        const done = o.finalizado ? ' done' : '';
+        const done = (o.finalizado || o.cancelado) ? ' done' : '';
+        let statusTags = '';
+        if(o.cancelado){
+          statusTags += '<span class="tag cancelado">❌ Cancelado</span>';
+        } else {
+          statusTags += o.finalizado ? '<span class="tag pago">✅ Pago</span>' : '<span class="tag aberto">⏳ Aberto</span>';
+        }
+        if(o.impresso) statusTags += '<br><span class="tag impresso">🖨️ Impresso</span>';
         return `<tr class="${done}">
           <td>${fmtDate(o.created_at)}</td>
           <td><strong>${esc(o.cliente)}</strong></td>
@@ -256,15 +431,29 @@ tbody tr.done td .done-tag{color:var(--color-success)}
           <td>${esc(o.bairro)}</td>
           <td>${esc(o.pagamento)}</td>
           <td><strong>${fmtMoney(o.total)}</strong></td>
-          <td>${o.finalizado ? '<span class="done-tag">✅ Finalizado</span>' : '<span class="cell-dim">⏳ Pendente</span>'}</td>
-          <td class="mono cell-dim">${esc(o.finalizado_por || '—')}</td>
-          <td><input type="checkbox" class="fin-check" data-id="${esc(o.id)}" ${checked} /></td>
+          <td>${statusTags}</td>
+          <td><input type="checkbox" class="fin-check" data-id="${esc(o.id)}" ${checked} ${o.cancelado ? 'disabled' : ''} /></td>
+          <td>
+            <div class="actions-cell">
+              <button class="act-btn" data-act="print" data-id="${esc(o.id)}" title="Imprimir etiqueta">🖨️</button>
+              <button class="act-btn" data-act="detail" data-id="${esc(o.id)}" title="Ver detalhes">👁️</button>
+              ${o.cancelado ? '' : '<button class="act-btn cancel" data-act="cancel" data-id="' + esc(o.id) + '" title="Cancelar pedido">❌</button>'}
+            </div>
+          </td>
         </tr>`;
       }).join('');
       bodyEl.querySelectorAll('.fin-check').forEach(cb => {
         cb.addEventListener('change', () => {
           dirty.set(cb.dataset.id, cb.checked);
           updateDirtyUI();
+        });
+      });
+      bodyEl.querySelectorAll('.act-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          if(btn.dataset.act === 'print') printOrder(id);
+          else if(btn.dataset.act === 'cancel') openCancelModal(id);
+          else openDetail(id);
         });
       });
     }
@@ -285,7 +474,7 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     }
   }
 
-  // ── IP de quem salvou ──────────────────────────────────────────────
+  // ── IP de quem salvou / imprimiu ───────────────────────────────────
   async function getIP(){
     try {
       const r = await fetch('https://api.ipify.org?format=json');
@@ -302,7 +491,7 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     return null;
   }
 
-  // ── Salvar alterações ──────────────────────────────────────────────
+  // ── Salvar alterações (checkboxes de pagamento) ────────────────────
   async function saveChanges(){
     if(dirty.size === 0){ showStatus('Nenhuma alteração para salvar.', 'info'); return; }
     saveBtn.disabled = true;
@@ -335,6 +524,134 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     await loadOrders();
   }
 
+  // ── Impressão em etiqueta térmica (100 x 150 mm) ───────────────────
+  function buildLabel(o){
+    const items = (o.itens && o.itens.length)
+      ? o.itens.map(it => `${it.quantidade}x ${esc(it.produto)}`).join('<br>')
+      : '—';
+    return `<div class="plabel">
+      <div class="l-brand">CHURRASCO NA MARMITA</div>
+      <div class="l-sub">Lagoa Santa - MG · ${fmtDate(o.created_at)}</div>
+      <div class="l-cust">${esc(o.cliente)}</div>
+      <div class="l-line">📞 ${esc(o.telefone)}</div>
+      <div class="l-line">📍 ${esc(o.bairro)}${o.endereco ? ' — ' + esc(o.endereco) : ''}</div>
+      <div class="l-sep"></div>
+      <div class="l-items">${items}</div>
+      ${o.cancelado ? `<div class="l-obs" style="font-weight:800;font-size:14px;color:#c00">❌ CANCELADO</div>` : ''}
+      ${o.observacao ? `<div class="l-obs">Obs: ${esc(o.observacao)}</div>` : ''}
+      <div class="l-sep"></div>
+      <div class="l-total">TOTAL ${fmtMoney(o.total)}</div>
+      <div class="l-pay">Pagamento: ${esc(o.pagamento)}</div>
+    </div>`;
+  }
+  async function markPrinted(ids){
+    const ip = (await getIP()) || 'desconhecido';
+    const now = new Date().toISOString();
+    for(const id of ids){
+      try {
+        await fetch(SUPABASE.url + '/rest/v1/pedidos?id=eq.' + encodeURIComponent(id), {
+          method: 'PATCH',
+          headers: Object.assign({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, authHeaders),
+          body: JSON.stringify({ impresso: true, impresso_por: ip, impresso_em: now })
+        });
+      } catch(e){}
+    }
+  }
+  function printOrders(ids){
+    if(!ids.length){ showStatus('Nenhum pedido para imprimir.', 'info'); return; }
+    const sel = orders.filter(o => ids.includes(o.id));
+    document.getElementById('printArea').innerHTML = sel.map(buildLabel).join('');
+    markPrinted(ids);
+    window.print();
+    loadOrders();
+  }
+  function printOrder(id){ printOrders([id]); }
+
+  // ── Detalhes do pedido ─────────────────────────────────────────────
+  function openDetail(id){
+    const o = orders.find(x => x.id === id);
+    if(!o) return;
+    const items = (o.itens || []).map(it =>
+      `<tr><td>${esc(it.produto)}</td><td>${it.quantidade}x</td><td>${fmtMoney(it.subtotal)}</td></tr>`
+    ).join('');
+    document.getElementById('detailTitle').textContent = 'Pedido — ' + esc(o.cliente);
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-grid">
+        <div><span>Data/Hora</span>${fmtDate(o.created_at)}</div>
+        <div><span>Cliente</span>${esc(o.cliente)}</div>
+        <div><span>Telefone</span>${esc(o.telefone)}</div>
+        <div><span>Bairro</span>${esc(o.bairro)}</div>
+        <div><span>Endereço</span>${esc(o.endereco || '—')}</div>
+        <div><span>Pagamento</span>${esc(o.pagamento)}</div>
+        <div><span>Status</span>${o.cancelado ? '❌ Cancelado' : (o.finalizado ? '✅ Pago' : '⏳ Aberto')}${o.impresso ? ' · 🖨️ Impresso' : ''}</div>
+        <div><span>Total</span><strong>${fmtMoney(o.total)}</strong></div>
+        <div class="full"><span>Finalizado por (IP)</span>${esc(o.finalizado_por || '—')}${o.finalizado_em ? ' em ' + fmtDate(o.finalizado_em) : ''}</div>
+        <div class="full"><span>Impresso por (IP)</span>${esc(o.impresso_por || '—')}${o.impresso_em ? ' em ' + fmtDate(o.impresso_em) : ''}</div>
+        ${o.cancelado ? `
+        <div class="full" style="color:var(--color-error)"><span>Cancelado</span>${esc(o.motivo_cancelamento || '—')}</div>
+        <div class="full"><span>Cancelado por (ciência)</span>${esc(o.cancelado_por || '—')}${o.cancelado_em ? ' em ' + fmtDate(o.cancelado_em) : ''}${o.cancelado_ip ? ' · IP ' + esc(o.cancelado_ip) : ''}</div>` : ''}
+        ${o.observacao ? `<div class="full"><span>Observação</span>${esc(o.observacao)}</div>` : ''}
+      </div>
+      <h4 style="margin:14px 0 4px 0">Itens</h4>
+      <table class="detail-items">
+        <thead><tr><th>Produto</th><th>Qtd</th><th>Subtotal</th></tr></thead>
+        <tbody>${items || '<tr><td colspan="3">—</td></tr>'}</tbody>
+      </table>`;
+    document.getElementById('detailPrint').dataset.id = o.id;
+    document.getElementById('detailModal').classList.add('active');
+  }
+  function closeDetail(){
+    document.getElementById('detailModal').classList.remove('active');
+  }
+
+  // ── Cancelamento de pedido ─────────────────────────────────────────
+  let cancelingId = null;
+  function openCancelModal(id){
+    const o = orders.find(x => x.id === id);
+    if(!o) return;
+    cancelingId = id;
+    document.getElementById('cancelInfo').innerHTML =
+      `Cliente: <strong>${esc(o.cliente)}</strong> · Total: <strong>${fmtMoney(o.total)}</strong>`;
+    document.getElementById('cancelMotivo').value = '';
+    document.querySelectorAll('.ciencia-check').forEach(c => { c.checked = false; });
+    document.getElementById('cancelError').className = 'modal-error';
+    document.getElementById('cancelModal').classList.add('active');
+  }
+  function closeCancelModal(){
+    document.getElementById('cancelModal').classList.remove('active');
+    cancelingId = null;
+  }
+  async function confirmCancel(){
+    if(!cancelingId) return;
+    const motivo = document.getElementById('cancelMotivo').value.trim();
+    const ciencia = [...document.querySelectorAll('.ciencia-check:checked')].map(c => c.value);
+    const errEl = document.getElementById('cancelError');
+    if(!motivo){ errEl.textContent = 'Informe a justificativa do cancelamento.'; errEl.className = 'modal-error active'; return; }
+    if(ciencia.length === 0){ errEl.textContent = 'Selecione pelo menos 1 nome para confirmar a ciência.'; errEl.className = 'modal-error active'; return; }
+    errEl.className = 'modal-error';
+    const ip = (await getIP()) || 'desconhecido';
+    const now = new Date().toISOString();
+    try {
+      const resp = await fetch(SUPABASE.url + '/rest/v1/pedidos?id=eq.' + encodeURIComponent(cancelingId), {
+        method: 'PATCH',
+        headers: Object.assign({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, authHeaders),
+        body: JSON.stringify({
+          cancelado: true,
+          motivo_cancelamento: motivo,
+          cancelado_por: ciencia.join(', '),
+          cancelado_ip: ip,
+          cancelado_em: now
+        })
+      });
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
+      showStatus('❌ Pedido cancelado com sucesso. Ciência: ' + ciencia.join(', '));
+      closeCancelModal();
+      await loadOrders();
+    } catch(e){
+      showStatus('⚠️ Falha ao cancelar o pedido: ' + e.message, 'err');
+    }
+  }
+
   // ── Autenticação simples (mesma senha do admin) ────────────────────
   function requireAuth(){
     if(sessionStorage.getItem('churrasco_pedidos_auth') === '1') return;
@@ -347,6 +664,7 @@ tbody tr.done td .done-tag{color:var(--color-success)}
     if(pwd.toLowerCase() === ADMIN_PASSWORD){
       sessionStorage.setItem('churrasco_pedidos_auth', '1');
       document.getElementById('authModal').classList.remove('active');
+      updateFilterUI();
       loadOrders();
     } else {
       errEl.textContent = 'Senha incorreta!';
@@ -355,28 +673,66 @@ tbody tr.done td .done-tag{color:var(--color-success)}
   }
 
   // ── Eventos ────────────────────────────────────────────────────────
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filter = btn.dataset.filter;
+      page = 1;
+      updateFilterUI();
+      loadOrders();
+    });
+  });
+  document.getElementById('applyDates').addEventListener('click', () => {
+    dateStart = document.getElementById('dateStart').value;
+    dateEnd = document.getElementById('dateEnd').value;
+    page = 1;
+    updateFilterUI();
+    loadOrders();
+  });
   document.getElementById('perPage').addEventListener('change', e => {
     perPage = Number(e.target.value);
     page = 1;
-    loadOrders();
+    render();
   });
   document.getElementById('prevBtn').addEventListener('click', () => {
-    if(page > 1){ page--; loadOrders(); }
+    if(page > 1){ page--; render(); }
   });
   document.getElementById('nextBtn').addEventListener('click', () => {
     const totalPages = Math.max(1, Math.ceil(total / perPage));
-    if(page < totalPages){ page++; loadOrders(); }
+    if(page < totalPages){ page++; render(); }
   });
   document.getElementById('saveBtn').addEventListener('click', saveChanges);
+  document.getElementById('printAllBtn').addEventListener('click', () => {
+    printOrders(orders.map(o => o.id));
+  });
+  document.getElementById('detailPrint').addEventListener('click', e => {
+    printOrder(e.target.dataset.id);
+  });
+  document.getElementById('cancelConfirm').addEventListener('click', confirmCancel);
+  document.getElementById('cancelClose').addEventListener('click', closeCancelModal);
+  document.getElementById('cancelModal').addEventListener('click', e => {
+    if(e.target === e.currentTarget) closeCancelModal();
+  });
+  document.getElementById('detailClose').addEventListener('click', closeDetail);
+  document.getElementById('detailModal').addEventListener('click', e => {
+    if(e.target === e.currentTarget) closeDetail();
+  });
   document.getElementById('authSubmit').addEventListener('click', authSubmit);
   document.getElementById('authPwd').addEventListener('keydown', e => { if(e.key === 'Enter') authSubmit(); });
 
   // ── Inicialização ──────────────────────────────────────────────────
   requireAuth();
-  // Cada F5 recarrega a página e refaz o fetch com os dados mais recentes
   if(sessionStorage.getItem('churrasco_pedidos_auth') === '1'){
+    updateFilterUI();
     loadOrders();
   }
+  // Atualiza automaticamente a cada 5 minutos, mantendo o filtro selecionado
+  setInterval(() => {
+    if(sessionStorage.getItem('churrasco_pedidos_auth') !== '1') return;
+    if(dirty.size > 0) return;                 // não sobrescreve alterações pendentes
+    if(document.getElementById('detailModal').classList.contains('active')) return;
+    if(document.getElementById('cancelModal').classList.contains('active')) return;
+    loadOrders();
+  }, 5 * 60 * 1000);
 </script>
 </body>
 </html>

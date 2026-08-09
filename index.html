@@ -430,6 +430,10 @@ window.addEventListener('message', function(ev) {
               <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
             </div>
             <div>
+              <label class="label" for="obs">Observação</label>
+              <textarea id="obs" placeholder="Ex.: sem cebola, ponto da carne, trocar refrigerante..."></textarea>
+            </div>
+            <div>
               <label class="label" for="payment">Forma de pagamento</label>
               <select id="payment" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
                 <option value="">Selecione a forma de pagamento...</option>
@@ -721,6 +725,7 @@ window.addEventListener('message', function(ev) {
     const neighborhood = neighborhoodEl.value;
     const paymentEl = document.getElementById('payment');
     const payment = paymentEl.value;
+    const observacao = document.getElementById('obs').value.trim();
     const selected = products.filter(p => cart[p.id] > 0);
 
     if(!name) return showStatus('Preencha o nome do cliente.');
@@ -741,6 +746,7 @@ window.addEventListener('message', function(ev) {
       `*Bairro:* ${neighborhood}`,
       address ? `*Endereço:* ${address}` : '*Endereço:* não informado',
       `*Pagamento:* ${payment}`,
+      observacao ? `*Observação:* ${observacao}` : '',
       '',
       '*Pedido:*',
       itemsText.replace(/%0A/g,'\n'),
@@ -748,7 +754,7 @@ window.addEventListener('message', function(ev) {
       `*Subtotal:* ${fmt(subtotal)}`,
       `*Frete:* ${fmt(shipping)}`,
       `*Total:* ${fmt(total)}`
-    ].join('\n');
+    ].join('\n').replace(/\n{3,}/g, '\n\n');
 
     const url = `https://wa.me/553193144890?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -763,6 +769,7 @@ window.addEventListener('message', function(ev) {
       bairro: neighborhood,
       endereco: address || null,
       pagamento: payment,
+      observacao: observacao || null,
       itens: selected.map(p => ({
         produto: p.name,
         quantidade: cart[p.id],
