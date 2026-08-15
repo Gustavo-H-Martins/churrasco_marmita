@@ -175,6 +175,7 @@ tbody tr.done{opacity:.65}
 .plabel{box-sizing:border-box;width:100mm;height:150mm;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
 .l-brand{font-size:14px;font-weight:800;text-align:center;letter-spacing:.5px}
 .l-carinho{font-size:9.5px;font-style:italic;text-align:center;color:#555;margin-bottom:2mm}
+.l-num{text-align:center;font-size:13px;font-weight:800;margin-bottom:2mm}
 .l-sub{text-align:center;font-size:9px;margin-bottom:3mm;color:#333}
 .l-cust{font-size:13px;font-weight:800;margin:2mm 0 1mm 0}
 .l-line{font-size:12px}
@@ -226,6 +227,7 @@ tbody tr.done{opacity:.65}
     <span class="spacer"></span>
     <span id="pendingInfo" class="badge" style="display:none"></span>
     <button id="printAllBtn" class="btn ghost">🖨️ Imprimir etiquetas</button>
+    <button id="copyAllBtn" class="btn ghost">📋 Copiar endereços</button>
     <button id="saveBtn" class="btn" disabled>💾 Salvar alterações</button>
   </div>
 
@@ -395,6 +397,9 @@ tbody tr.done{opacity:.65}
       orders = await resp.json();
       // Filtro "em aberto" exclui cancelados (resiliente: funciona mesmo sem a coluna ainda existir)
       if(filter === 'abertos') orders = orders.filter(o => !o.cancelado);
+      // Número do pedido dentro do dia (1º, 2º, 3º... na ordem em que foram feitos)
+      const seqMap = await loadDailySeq();
+      orders = orders.map(o => ({ ...o, seqDia: seqMap[o.id] || 0 }));
       total = orders.length;
       const totalPages = Math.max(1, Math.ceil(total / perPage));
       if(page > totalPages) page = totalPages;
@@ -440,6 +445,7 @@ tbody tr.done{opacity:.65}
           <td>
             <div class="actions-cell">
               <button class="act-btn" data-act="print" data-id="${esc(o.id)}" title="Imprimir etiqueta">🖨️</button>
+              <button class="act-btn" data-act="copy" data-id="${esc(o.id)}" title="Copiar pedido">📋</button>
               <button class="act-btn" data-act="detail" data-id="${esc(o.id)}" title="Ver detalhes">👁️</button>
               ${o.cancelado ? '' : '<button class="act-btn cancel" data-act="cancel" data-id="' + esc(o.id) + '" title="Cancelar pedido">❌</button>'}
             </div>
@@ -456,6 +462,7 @@ tbody tr.done{opacity:.65}
         btn.addEventListener('click', () => {
           const id = btn.dataset.id;
           if(btn.dataset.act === 'print') printOrder(id);
+          else if(btn.dataset.act === 'copy') copyOrder(id);
           else if(btn.dataset.act === 'cancel') openCancelModal(id);
           else openDetail(id);
         });
@@ -536,6 +543,7 @@ tbody tr.done{opacity:.65}
     return `<div class="plabel">
       <div class="l-brand">CHURRASCO NA MARMITA</div>
       <div class="l-carinho">Feito com muito carinho, para você!</div>
+      <div class="l-num">Pedido #${o.seqDia || '—'}</div>
       <div class="l-sub">Lagoa Santa - MG · ${fmtDate(o.created_at)}</div>
       <div class="l-cust">${esc(o.cliente)}</div>
       <div class="l-line">📞 ${esc(o.telefone)}</div>
@@ -571,6 +579,63 @@ tbody tr.done{opacity:.65}
     loadOrders();
   }
   function printOrder(id){ printOrders([id]); }
+
+  // ── Número do pedido no dia (ordem em que foi feito, horário de Brasília) ──
+  async function loadDailySeq(){
+    try {
+      const resp = await fetch(SUPABASE.url + '/rest/v1/pedidos?select=id,created_at&order=created_at.asc', { headers: authHeaders });
+      if(!resp.ok) return {};
+      const all = await resp.json();
+      const seqMap = {};
+      const byDay = {};
+      for(const o of all){
+        const d = new Date(o.created_at);
+        const key = new Date(d.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        byDay[key] = (byDay[key] || 0) + 1;
+        seqMap[o.id] = byDay[key];
+      }
+      return seqMap;
+    } catch(e){ return {}; }
+  }
+
+  // ── Copiar pedido / endereços (para mapear e enviar aos motoboys) ──
+  function orderToText(o){
+    const itens = (o.itens || []).map(it => `${it.quantidade}x ${it.produto}`).join(', ');
+    const onde = (o.bairro === 'Retirada no local')
+      ? 'Retirada no local'
+      : (o.bairro + (o.endereco ? ' - ' + o.endereco : ''));
+    return `${o.cliente} | ${o.telefone} | ${onde} | ${fmtMoney(o.total)} | ${itens}`;
+  }
+  async function copyText(txt){
+    try {
+      await navigator.clipboard.writeText(txt);
+      return true;
+    } catch(e){
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        return true;
+      } catch(e2){ return false; }
+    }
+  }
+  async function copyOrder(id){
+    const o = orders.find(x => x.id === id);
+    if(!o) return;
+    const ok = await copyText(orderToText(o));
+    showStatus(ok ? '📋 Pedido copiado: ' + o.cliente : 'Não foi possível copiar.', ok ? 'ok' : 'err');
+  }
+  async function copyAll(){
+    if(!orders.length){ showStatus('Nenhum pedido para copiar.', 'info'); return; }
+    const linhas = orders.map((o, i) => `${i + 1}. ${orderToText(o)}`).join('\n');
+    const ok = await copyText(linhas);
+    showStatus(ok ? '📋 ' + orders.length + ' endereço(s) copiado(s).' : 'Não foi possível copiar.', ok ? 'ok' : 'err');
+  }
 
   // ── Detalhes do pedido ─────────────────────────────────────────────
   function openDetail(id){
@@ -709,6 +774,7 @@ tbody tr.done{opacity:.65}
   document.getElementById('printAllBtn').addEventListener('click', () => {
     printOrders(orders.map(o => o.id));
   });
+  document.getElementById('copyAllBtn').addEventListener('click', copyAll);
   document.getElementById('detailPrint').addEventListener('click', e => {
     printOrder(e.target.dataset.id);
   });

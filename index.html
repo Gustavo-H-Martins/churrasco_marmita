@@ -301,6 +301,9 @@ window.addEventListener('message', function(ev) {
   .inputs input,.inputs textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small)}
   .inputs textarea{min-height:72px;resize:vertical}
   .label{font-size:var(--text-small);font-weight:600;margin-bottom:6px;display:block}
+  .delivery-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .toggle-btn{padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-weight:700;cursor:pointer;font-family:inherit}
+  .toggle-btn.active{background:var(--color-brand-primary);color:var(--color-text-on-brand);border-color:var(--color-brand-primary)}
   .cart-list{display:grid;gap:var(--space-8)}
   .cart-item{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-12);padding:10px 12px;border:1px solid var(--color-border-default);border-radius:10px;background:var(--color-bg-page)}
   .cart-item small{display:block;color:var(--color-text-secondary);margin-top:2px}
@@ -382,54 +385,62 @@ window.addEventListener('message', function(ev) {
               <input id="phone" placeholder="(31) 99999-9999" />
             </div>
             <div>
-              <label class="label" for="neighborhood">Bairro</label>
-              <select id="neighborhood" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
-                <option value="">Selecione o bairro...</option>
-                <option value="Retirada no local">Retirada no local</option>
-                <option value="Acácias">Acácias</option>
-                <option value="Vila Maria">Vila Maria</option>
-                <option value="Santa Helena">Santa Helena</option>
-                <option value="Vila Rica">Vila Rica</option>
-                <option value="Jardim Imperial">Jardim Imperial</option>
-                <option value="Por do Sol">Por do Sol</option>
-                <option value="Moradas">Moradas</option>
-                <option value="Vale Verde Ville">Vale Verde Ville</option>
-                <option value="Portal do Sol">Portal do Sol</option>
-                <option value="Jacques Vile">Jacques Vile</option>
-                <option value="Palmital">Palmital</option>
-                <option value="Vale dos Sonhos">Vale dos Sonhos</option>
-                <option value="Vila Fagundes">Vila Fagundes</option>
-                <option value="Sobradinho">Sobradinho</option>
-                <option value="Brant">Brant</option>
-                <option value="Campinho">Campinho</option>
-                <option value="Centro">Centro</option>
-                <option value="Barraginha">Barraginha</option>
-                <option value="Várzea">Várzea</option>
-                <option value="Bela Vista">Bela Vista</option>
-                <option value="Joa">Joa</option>
-                <option value="Santos Dumont">Santos Dumont</option>
-                <option value="Ovídeo Guerra">Ovídeo Guerra</option>
-                <option value="Ipê">Ipê</option>
-                <option value="Praia Angélica">Praia Angélica</option>
-                <option value="Novo Santos Dumont">Novo Santos Dumont</option>
-                <option value="Recanto">Recanto</option>
-                <option value="Aeronautas">Aeronautas</option>
-                <option value="Visão">Visão</option>
-                <option value="Lagoinha">Lagoinha</option>
-                <option value="Lundceia">Lundceia</option>
-                <option value="Recanto do Poeta">Recanto do Poeta</option>
-                <optgroup label="Condomínios">
-                  <option value="Amendoeiras">Amendoeiras</option>
-                  <option value="Mirante do Fidalgo">Mirante do Fidalgo</option>
-                  <option value="Bouganvile">Bouganvile</option>
-                  <option value="Maripousas">Maripousas</option>
-                  <option value="Trilhas do Sol">Trilhas do Sol</option>
-                </optgroup>
-              </select>
+              <label class="label">Tipo de entrega</label>
+              <div class="delivery-toggle">
+                <button type="button" id="deliveryBtn" class="toggle-btn active">🛵 Entrega</button>
+                <button type="button" id="pickupBtn" class="toggle-btn">🏪 Retirada</button>
+              </div>
             </div>
-            <div>
-              <label class="label" for="address">Endereço</label>
-              <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
+            <div id="deliveryFields">
+              <div>
+                <label class="label" for="neighborhood">Bairro</label>
+                <select id="neighborhood" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
+                  <option value="">Selecione o bairro...</option>
+                  <option value="Acácias">Acácias</option>
+                  <option value="Vila Maria">Vila Maria</option>
+                  <option value="Santa Helena">Santa Helena</option>
+                  <option value="Vila Rica">Vila Rica</option>
+                  <option value="Jardim Imperial">Jardim Imperial</option>
+                  <option value="Por do Sol">Por do Sol</option>
+                  <option value="Moradas">Moradas</option>
+                  <option value="Vale Verde Ville">Vale Verde Ville</option>
+                  <option value="Portal do Sol">Portal do Sol</option>
+                  <option value="Jacques Vile">Jacques Vile</option>
+                  <option value="Palmital">Palmital</option>
+                  <option value="Vale dos Sonhos">Vale dos Sonhos</option>
+                  <option value="Vila Fagundes">Vila Fagundes</option>
+                  <option value="Sobradinho">Sobradinho</option>
+                  <option value="Brant">Brant</option>
+                  <option value="Campinho">Campinho</option>
+                  <option value="Centro">Centro</option>
+                  <option value="Barraginha">Barraginha</option>
+                  <option value="Várzea">Várzea</option>
+                  <option value="Bela Vista">Bela Vista</option>
+                  <option value="Joa">Joa</option>
+                  <option value="Santos Dumont">Santos Dumont</option>
+                  <option value="Ovídeo Guerra">Ovídeo Guerra</option>
+                  <option value="Ipê">Ipê</option>
+                  <option value="Praia Angélica">Praia Angélica</option>
+                  <option value="Novo Santos Dumont">Novo Santos Dumont</option>
+                  <option value="Recanto">Recanto</option>
+                  <option value="Aeronautas">Aeronautas</option>
+                  <option value="Visão">Visão</option>
+                  <option value="Lagoinha">Lagoinha</option>
+                  <option value="Lundceia">Lundceia</option>
+                  <option value="Recanto do Poeta">Recanto do Poeta</option>
+                  <optgroup label="Condomínios">
+                    <option value="Amendoeiras">Amendoeiras</option>
+                    <option value="Mirante do Fidalgo">Mirante do Fidalgo</option>
+                    <option value="Bouganvile">Bouganvile</option>
+                    <option value="Maripousas">Maripousas</option>
+                    <option value="Trilhas do Sol">Trilhas do Sol</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label class="label" for="address">Endereço</label>
+                <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
+              </div>
             </div>
             <div>
               <label class="label" for="obs">Observação</label>
@@ -503,7 +514,6 @@ window.addEventListener('message', function(ev) {
   const cart = Object.fromEntries(products.map(p => [p.id, 0]));
 
   const shippingRates = {
-    'Retirada no local':0,
     'Acácias':2, 'Vila Maria':2, 'Santa Helena':2,
     'Vila Rica':3, 'Jardim Imperial':3, 'Por do Sol':3, 'Moradas':3, 'Vale Verde Ville':3, 'Portal do Sol':3, 'Jacques Vile':3,
     'Palmital':4, 'Vale dos Sonhos':4, 'Vila Fagundes':4,
@@ -533,6 +543,7 @@ window.addEventListener('message', function(ev) {
   };
 
   let isOpen = true;
+  let deliveryMode = 'entrega';
   const ADMIN_PASSWORD = 'bdg2026';
 
   const fmt = value => value.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
@@ -690,10 +701,10 @@ window.addEventListener('message', function(ev) {
     const totalItems = selected.reduce((sum,p) => sum + cart[p.id], 0);
     const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
     const neighborhood = document.getElementById('neighborhood').value;
-    const shipping = shippingRates[neighborhood] || 0;
+    const shipping = (deliveryMode === 'retirada') ? 0 : (shippingRates[neighborhood] || 0);
     cartCountEl.textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'itens'}`;
     subtotalEl.textContent = fmt(subtotal);
-    shippingEl.textContent = neighborhood ? fmt(shipping) : '—';
+    shippingEl.textContent = (deliveryMode === 'retirada') ? 'R$ 0,00' : (neighborhood ? fmt(shipping) : '—');
     totalEl.textContent = fmt(subtotal + shipping);
 
     if(!selected.length){
@@ -719,14 +730,24 @@ window.addEventListener('message', function(ev) {
     _reportHeight();
   }
 
+  function setDeliveryMode(mode){
+    deliveryMode = mode;
+    document.getElementById('deliveryBtn').classList.toggle('active', mode === 'entrega');
+    document.getElementById('pickupBtn').classList.toggle('active', mode === 'retirada');
+    const fields = document.getElementById('deliveryFields');
+    if(fields) fields.style.display = (mode === 'entrega') ? '' : 'none';
+    render();
+  }
+
   document.getElementById('finishBtn').addEventListener('click', () => {
     if(!isOpen) return showStatus('🛑 Fechado por enquanto. Volte mais tarde!');
     clearStatus();
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const address = document.getElementById('address').value.trim();
+    const isRetirada = deliveryMode === 'retirada';
     const neighborhoodEl = document.getElementById('neighborhood');
-    const neighborhood = neighborhoodEl.value;
+    const neighborhood = isRetirada ? 'Retirada no local' : neighborhoodEl.value;
     const paymentEl = document.getElementById('payment');
     const payment = paymentEl.value;
     const observacao = document.getElementById('obs').value.trim();
@@ -734,12 +755,12 @@ window.addEventListener('message', function(ev) {
 
     if(!name) return showStatus('Preencha o nome do cliente.');
     if(!phone) return showStatus('Preencha o telefone do cliente.');
-    if(!neighborhood) return showStatus('Selecione o bairro para calcular o frete.');
+    if(!isRetirada && !neighborhood) return showStatus('Selecione o bairro para calcular o frete.');
     if(!payment) return showStatus('Selecione a forma de pagamento.');
     if(!selected.length) return showStatus('Adicione pelo menos um item ao pedido.');
 
     const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
-    const shipping = shippingRates[neighborhood] || 0;
+    const shipping = isRetirada ? 0 : (shippingRates[neighborhood] || 0);
     const total = subtotal + shipping;
     const itemsText = selected.map(p => `- ${p.name} x${cart[p.id]} = ${fmt(cart[p.id] * p.price)}`).join('%0A');
     const message = [
@@ -748,7 +769,7 @@ window.addEventListener('message', function(ev) {
       `*Nome:* ${name}`,
       `*Telefone:* ${phone}`,
       `*Bairro:* ${neighborhood}`,
-      address ? `*Endereço:* ${address}` : '*Endereço:* não informado',
+      isRetirada ? '*Endereço:* Retirada no local' : (address ? `*Endereço:* ${address}` : '*Endereço:* não informado'),
       `*Pagamento:* ${payment}`,
       observacao ? `*Observação:* ${observacao}` : '',
       '',
@@ -771,7 +792,7 @@ window.addEventListener('message', function(ev) {
       cliente: name,
       telefone: phone,
       bairro: neighborhood,
-      endereco: address || null,
+      endereco: isRetirada ? null : (address || null),
       pagamento: payment,
       observacao: observacao || null,
       itens: selected.map(p => ({
@@ -787,6 +808,8 @@ window.addEventListener('message', function(ev) {
   });
 
   document.getElementById('neighborhood').addEventListener('change', () => render());
+  document.getElementById('deliveryBtn').addEventListener('click', () => setDeliveryMode('entrega'));
+  document.getElementById('pickupBtn').addEventListener('click', () => setDeliveryMode('retirada'));
 
   document.getElementById('adminBtn').addEventListener('click', adminLogin);
   document.getElementById('adminPwdSubmit').addEventListener('click', adminSubmit);
