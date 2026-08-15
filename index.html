@@ -385,6 +385,7 @@ window.addEventListener('message', function(ev) {
               <label class="label" for="neighborhood">Bairro</label>
               <select id="neighborhood" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
                 <option value="">Selecione o bairro...</option>
+                <option value="Retirada no local">Retirada no local</option>
                 <option value="Acácias">Acácias</option>
                 <option value="Vila Maria">Vila Maria</option>
                 <option value="Santa Helena">Santa Helena</option>
@@ -502,6 +503,7 @@ window.addEventListener('message', function(ev) {
   const cart = Object.fromEntries(products.map(p => [p.id, 0]));
 
   const shippingRates = {
+    'Retirada no local':0,
     'Acácias':2, 'Vila Maria':2, 'Santa Helena':2,
     'Vila Rica':3, 'Jardim Imperial':3, 'Por do Sol':3, 'Moradas':3, 'Vale Verde Ville':3, 'Portal do Sol':3, 'Jacques Vile':3,
     'Palmital':4, 'Vale dos Sonhos':4, 'Vila Fagundes':4,
