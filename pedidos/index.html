@@ -604,7 +604,7 @@ tbody tr.done{opacity:.65}
     const onde = (o.bairro === 'Retirada no local')
       ? 'Retirada no local'
       : (o.bairro + (o.endereco ? ' - ' + o.endereco : ''));
-    return `${o.cliente} | ${o.telefone} | ${onde} | ${fmtMoney(o.total)} | ${itens}`;
+    return `Pedido #${o.seqDia || '—'} | ${o.cliente} | ${o.telefone} | ${onde} | ${fmtMoney(o.total)} | ${itens}`;
   }
   async function copyText(txt){
     try {
@@ -632,7 +632,7 @@ tbody tr.done{opacity:.65}
   }
   async function copyAll(){
     if(!orders.length){ showStatus('Nenhum pedido para copiar.', 'info'); return; }
-    const linhas = orders.map((o, i) => `${i + 1}. ${orderToText(o)}`).join('\n');
+    const linhas = orders.map(o => orderToText(o)).join('\n');
     const ok = await copyText(linhas);
     showStatus(ok ? '📋 ' + orders.length + ' endereço(s) copiado(s).' : 'Não foi possível copiar.', ok ? 'ok' : 'err');
   }
