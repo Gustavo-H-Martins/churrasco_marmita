@@ -57,6 +57,9 @@ html, body { margin:0; padding:0; background:transparent !important; box-sizing:
 .header h1{margin:0;font-size:var(--text-h3)}
 .header p{margin:4px 0 0 0;color:var(--color-text-secondary);font-size:var(--text-small)}
 .badge{background:var(--color-bg-subtle);border:1px solid var(--color-border-default);border-radius:999px;padding:6px 12px;font-size:var(--text-caption);color:var(--color-text-secondary)}
+.header-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.badge-open{background:rgba(245,158,11,.15);color:var(--color-warning);border-color:var(--color-border-default)}
+.badge-cancelled{background:rgba(239,68,68,.15);color:var(--color-error);border-color:var(--color-border-error)}
 
 /* Filtros */
 .filters{display:flex;gap:var(--space-8);flex-wrap:wrap;margin-bottom:var(--space-12)}
@@ -71,6 +74,16 @@ html, body { margin:0; padding:0; background:transparent !important; box-sizing:
 .summary-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-12);flex-wrap:wrap;padding:12px 16px;border:1px solid var(--color-border-default);border-radius:var(--radius-12);background:var(--color-bg-surface);margin-bottom:var(--space-16)}
 .summary-bar .info{font-size:var(--text-small);color:var(--color-text-secondary)}
 .summary-bar .total{font-size:var(--text-h4);font-weight:800}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--space-12);margin-bottom:var(--space-16)}
+.card{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:14px 16px;display:grid;gap:2px}
+.card .card-label{font-size:var(--text-caption);color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.4px}
+.card strong{font-size:var(--text-h4);font-weight:800}
+.card small{font-size:var(--text-caption);color:var(--color-text-secondary)}
+.card.paid{border-color:var(--color-border-success)}
+.card.paid strong{color:var(--color-success)}
+.card.cancelled{border-color:var(--color-border-error)}
+.card.cancelled strong{color:var(--color-error)}
+.card.open strong{color:var(--color-warning)}
 
 .toolbar{display:flex;align-items:center;gap:var(--space-12);flex-wrap:wrap;margin-bottom:var(--space-16)}
 .toolbar label{font-size:var(--text-small);color:var(--color-text-secondary)}
@@ -193,7 +206,11 @@ tbody tr.done{opacity:.65}
       <h1>📋 Pedidos — Churrasco na Marmita</h1>
       <p>Atualiza automaticamente a cada 5 minutos, mantendo o filtro selecionado.</p>
     </div>
-    <span class="badge" id="connBadge">Conectando…</span>
+    <div class="header-badges">
+      <span class="badge" id="connBadge">Conectando…</span>
+      <span class="badge badge-open" id="badgeAberto">⏳ Abertos: —</span>
+      <span class="badge badge-cancelled" id="badgeCancelado">❌ Cancelados: —</span>
+    </div>
   </div>
 
   <div id="status" class="status"></div>
@@ -210,6 +227,26 @@ tbody tr.done{opacity:.65}
     <label for="dateEnd">Até:</label>
     <input type="date" id="dateEnd" />
     <button id="applyDates" class="btn ghost">Aplicar filtro</button>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <span class="card-label">💰 Total do dia</span>
+      <strong id="cardTotal">—</strong>
+      <small id="cardQtd">—</small>
+    </div>
+    <div class="card paid">
+      <span class="card-label">✅ Total pago</span>
+      <strong id="cardPago">—</strong>
+    </div>
+    <div class="card cancelled">
+      <span class="card-label">❌ Total cancelado</span>
+      <strong id="cardCancelado">—</strong>
+    </div>
+    <div class="card open">
+      <span class="card-label">⏳ Total aberto</span>
+      <strong id="cardAberto">—</strong>
+    </div>
   </div>
 
   <div class="summary-bar">
@@ -376,6 +413,51 @@ tbody tr.done{opacity:.65}
     document.getElementById('filterInfo').textContent = 'Filtro: ' + filterLabel();
   }
 
+  // ── Cards de totais do dia (horário de Brasília) ───────────────────
+  function hojeRange(){
+    const now = new Date();
+    const br = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    const start = new Date(br); start.setHours(0,0,0,0);
+    const end = new Date(br); end.setHours(23,59,59,999);
+    return {
+      start: new Date(start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      end: new Date(end.getTime() + 3 * 60 * 60 * 1000).toISOString()
+    };
+  }
+  async function loadDayTotals(){
+    try {
+      const r = hojeRange();
+      const q = SUPABASE.url + '/rest/v1/pedidos?select=total,finalizado,cancelado&created_at=gte.' + r.start + '&created_at=lte.' + r.end;
+      const resp = await fetch(q, { headers: authHeaders });
+      if(!resp.ok) return null;
+      const rows = await resp.json();
+      let total = 0, pago = 0, cancelado = 0, aberto = 0, qtdPago = 0, qtdCancelado = 0, qtdAberto = 0;
+      for(const o of rows){
+        const v = Number(o.total || 0);
+        total += v;
+        if(o.cancelado){ cancelado += v; qtdCancelado++; }
+        else if(o.finalizado){ pago += v; qtdPago++; }
+        else { aberto += v; qtdAberto++; }
+      }
+      return { total: total, pago: pago, cancelado: cancelado, aberto: aberto, qtd: rows.length, qtdPago: qtdPago, qtdCancelado: qtdCancelado, qtdAberto: qtdAberto };
+    } catch(e){ return null; }
+  }
+  function renderDayCards(d){
+    const set = (id, v) => { document.getElementById(id).textContent = v; };
+    if(!d){
+      set('cardTotal', '—'); set('cardQtd', '—'); set('cardPago', '—'); set('cardCancelado', '—'); set('cardAberto', '—');
+      set('badgeAberto', '⏳ Abertos: —'); set('badgeCancelado', '❌ Cancelados: —');
+      return;
+    }
+    set('cardTotal', fmtMoney(d.total));
+    set('cardQtd', d.qtd + (d.qtd === 1 ? ' pedido' : ' pedidos'));
+    set('cardPago', fmtMoney(d.pago));
+    set('cardCancelado', fmtMoney(d.cancelado));
+    set('cardAberto', fmtMoney(d.aberto));
+    set('badgeAberto', '⏳ Abertos: ' + d.qtdAberto);
+    set('badgeCancelado', '❌ Cancelados: ' + d.qtdCancelado);
+  }
+
   // ── Carregamento (executado a cada F5 e a cada 5 min) ──────────────
   async function loadOrders(){
     bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Carregando pedidos…</td></tr>';
@@ -405,6 +487,8 @@ tbody tr.done{opacity:.65}
       if(page > totalPages) page = totalPages;
       document.getElementById('connBadge').textContent = '🟢 ' + total + ' pedido(s)';
       render();
+      // Cards de totais do dia (total, pago, cancelado, aberto)
+      loadDayTotals().then(d => renderDayCards(d));
     } catch(e){
       document.getElementById('connBadge').textContent = '🔴 Falha na conexão';
       bodyEl.innerHTML = '<tr><td colspan="9" class="empty">Erro ao carregar pedidos: ' + esc(e.message) + '</td></tr>';
