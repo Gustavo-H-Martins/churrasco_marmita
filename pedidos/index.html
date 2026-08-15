@@ -163,22 +163,25 @@ tbody tr.done{opacity:.65}
 /* Etiqueta térmica adesiva 10 x 15 cm (100 x 150 mm) */
 #printArea{display:none}
 @media print{
-  body *{visibility:hidden}
-  #printArea, #printArea *{visibility:visible}
-  #printArea{display:block;position:absolute;left:0;top:0}
+  html, body{margin:0;padding:0}
+  /* Remove TODA a interface (tabela de pedidos, modais etc.) sem ocupar espaço,
+     evitando páginas em branco extras na impressão */
+  body > *:not(#printArea){display:none !important}
+  #printArea{display:block !important;position:absolute;left:0;top:0;width:100mm}
   @page{size:100mm 150mm;margin:0}
-  .plabel{width:100mm;height:150mm;page-break-after:always;overflow:hidden;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
+  .plabel{box-sizing:border-box;width:100mm;height:150mm;page-break-after:always;page-break-inside:avoid;break-inside:avoid;overflow:hidden;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
+  .plabel:last-child{page-break-after:auto;break-after:auto}
 }
-.plabel{width:100mm;height:150mm;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
+.plabel{box-sizing:border-box;width:100mm;height:150mm;background:#fff;color:#000;padding:6mm;font-family:Verdana,Arial,sans-serif;font-size:10px;line-height:1.25}
 .l-brand{font-size:14px;font-weight:800;text-align:center;letter-spacing:.5px}
 .l-sub{text-align:center;font-size:9px;margin-bottom:3mm;color:#333}
 .l-cust{font-size:13px;font-weight:800;margin:2mm 0 1mm 0}
-.l-line{font-size:10px}
+.l-line{font-size:12px}
 .l-sep{border-top:1px dashed #999;margin:3mm 0}
 .l-items{font-size:12px;font-weight:700}
-.l-obs{font-size:9px;color:#333;margin-top:2mm;font-style:italic}
+.l-obs{font-size:10px;color:#333;margin-top:2mm;font-style:italic}
 .l-total{font-size:16px;font-weight:900;margin-top:3mm}
-.l-pay{font-size:10px;margin-top:1mm}
+.l-pay{font-size:12px;margin-top:1mm}
 </style>
 </head>
 <body>
