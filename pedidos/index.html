@@ -118,6 +118,8 @@ tbody tr.done{opacity:.65}
 .act-btn:hover{border-color:var(--color-border-strong)}
 .act-btn.cancel:hover{border-color:var(--color-border-error)}
 .actions-cell{display:flex;gap:6px}
+.wa-link{color:var(--color-brand-secondary);text-decoration:none;font-weight:600}
+.wa-link:hover{text-decoration:underline}
 .label{font-size:var(--text-small);font-weight:600;margin-bottom:6px;display:block}
 .modal-content textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;min-height:80px;resize:vertical}
 .cancel-info{font-size:var(--text-small);color:var(--color-text-secondary);padding:10px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-subtle)}
@@ -390,6 +392,13 @@ tbody tr.done{opacity:.65}
       return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     } catch(e){ return iso; }
   }
+  // Link direto para o WhatsApp (adiciona o DDI 55 se não estiver presente)
+  function waLink(phone){
+    const d = String(phone || '').replace(/\D/g,'');
+    if(!d) return '#';
+    const num = d.startsWith('55') ? d : '55' + d;
+    return 'https://wa.me/' + num;
+  }
   function showStatus(msg, type){
     statusEl.textContent = msg;
     statusEl.className = 'status active ' + (type || 'ok');
@@ -520,7 +529,7 @@ tbody tr.done{opacity:.65}
         return `<tr class="${done}">
           <td>${fmtDate(o.created_at)}</td>
           <td><strong>${esc(o.cliente)}</strong></td>
-          <td>${esc(o.telefone)}</td>
+          <td><a class="wa-link" href="${waLink(o.telefone)}" target="_blank" rel="noopener" title="Abrir no WhatsApp">${esc(o.telefone)}</a></td>
           <td>${esc(o.bairro)}</td>
           <td>${esc(o.pagamento)}</td>
           <td><strong>${fmtMoney(o.total)}</strong></td>
@@ -733,7 +742,7 @@ tbody tr.done{opacity:.65}
       <div class="detail-grid">
         <div><span>Data/Hora</span>${fmtDate(o.created_at)}</div>
         <div><span>Cliente</span>${esc(o.cliente)}</div>
-        <div><span>Telefone</span>${esc(o.telefone)}</div>
+        <div><span>Telefone</span><a class="wa-link" href="${waLink(o.telefone)}" target="_blank" rel="noopener" title="Abrir no WhatsApp">${esc(o.telefone)}</a></div>
         <div><span>Bairro</span>${esc(o.bairro)}</div>
         <div><span>Endereço</span>${esc(o.endereco || '—')}</div>
         <div><span>Pagamento</span>${esc(o.pagamento)}</div>

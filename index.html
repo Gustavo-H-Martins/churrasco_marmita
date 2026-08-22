@@ -338,6 +338,36 @@ window.addEventListener('message', function(ev) {
   .admin-modal-actions button:last-child{background:var(--color-bg-page);color:var(--color-text-primary);border:1px solid var(--color-border-default)}
   .admin-error{font-size:var(--text-caption);color:var(--color-error);display:none}
   .admin-error.active{display:block}
+  .modal{position:fixed;inset:0;z-index:1000;display:none;place-items:center;background:rgba(0,0,0,.55);padding:var(--space-16);overflow:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .modal.active{display:grid}
+  .modal-content{background:var(--color-bg-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-12);padding:var(--space-20);max-width:420px;width:100%;max-height:calc(100vh - 32px);overflow-y:auto;display:grid;gap:var(--space-12);min-width:0}
+  .modal-content.wide{max-width:640px}
+  .modal-content h3{margin:0;font-size:var(--text-h4)}
+  .modal-content h4{margin:0;font-size:var(--text-body)}
+  .modal-content label{font-size:var(--text-caption);color:var(--color-text-secondary)}
+  .modal-content input,.modal-content select,.modal-content textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit}
+  .modal-content textarea{min-height:60px;resize:vertical}
+  .modal-actions{display:flex;gap:var(--space-8);flex-wrap:wrap}
+  .modal-actions button{flex:1;min-width:0;white-space:nowrap;padding:10px;border:none;border-radius:var(--radius-8);font-weight:600;cursor:pointer;font-size:var(--text-small);font-family:inherit}
+  .modal-actions .primary{background:var(--color-brand-primary);color:var(--color-text-on-brand)}
+  .modal-actions .ghost{background:transparent;color:var(--color-text-secondary);border:1px solid var(--color-border-default)}
+  .drink-list{display:grid;gap:var(--space-8);max-height:260px;overflow-y:auto;padding:4px}
+  .drink-item{display:flex;align-items:center;justify-content:space-between;gap:var(--space-8);padding:10px 12px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-8)}
+  .drink-item .qty{display:flex;align-items:center;gap:8px}
+  .drink-item .qty button{width:28px;height:28px;border:none;border-radius:var(--radius-8);cursor:pointer;background:var(--color-bg-subtle);color:var(--color-text-primary);font-size:16px;font-weight:700}
+  .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-8)}
+  .admin-grid button{padding:16px 12px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-subtle);color:var(--color-text-primary);cursor:pointer;font-size:var(--text-small);font-weight:600}
+  .admin-grid button:hover{border-color:var(--color-brand-secondary)}
+  .prod-list{display:grid;gap:var(--space-8);max-height:300px;overflow-y:auto}
+  .prod-row{display:flex;align-items:center;gap:var(--space-8);padding:8px 10px;border:1px solid var(--color-border-subtle);border-radius:var(--radius-8)}
+  .prod-row img{width:36px;height:36px;object-fit:cover;border-radius:8px}
+  .prod-row .info{flex:1;min-width:0}
+  .prod-row .info strong{display:block;font-size:var(--text-small);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prod-row .info small{color:var(--color-text-tertiary);font-size:var(--text-caption)}
+  .prod-row button{border:none;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-size:16px}
+  .prod-row button.danger{color:var(--color-error)}
+  .form-grid{display:grid;gap:var(--space-12)}
+  .img-preview{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--color-border-default);margin-top:6px}
 </style>
 
 <div class="menu-app">
@@ -474,8 +504,8 @@ window.addEventListener('message', function(ev) {
         </div>
 
         <div class="cta">
-          <button id="finishBtn">Finalizar no WhatsApp</button>
-          <div class="note">Finalize o pedido no WhatsApp, o aplicativo abre com a mensagem pronta para envio.</div>
+          <button id="finishBtn">Confirmar pedido</button>
+          <div class="note">Confirme o pedido, escolha se quer bebida e finalize no WhatsApp — o aplicativo abre com a mensagem pronta para envio.</div>
         </div>
       </div>
     </div>
@@ -497,23 +527,113 @@ window.addEventListener('message', function(ev) {
     <button id="adminBtn">⚙️ Admin</button>
     <a href="pedidos/">📋 Pedidos</a>
   </div>
+
+  <!-- Painel administrativo -->
+  <div id="adminPanel" class="modal">
+    <div class="modal-content">
+      <h3>⚙️ Painel Administrativo</h3>
+      <div class="admin-grid">
+        <button id="panelToggleBtn">🔁 Abrir/Fechar loja</button>
+        <button id="panelProductsBtn">📦 Produtos</button>
+        <button id="panelConfigBtn">🏪 Configuração</button>
+        <button id="panelCloseBtn">✖️ Fechar</button>
+      </div>
+      <div id="panelStatus" class="status"></div>
+    </div>
+  </div>
+
+  <!-- Sugestão de bebida -->
+  <div id="drinkModal" class="modal">
+    <div class="modal-content">
+      <h3>🍹 Quer adicionar uma bebida?</h3>
+      <p class="desc" style="margin:0;color:var(--color-text-secondary);font-size:var(--text-small)">Complete seu pedido com uma bebida gelada.</p>
+      <div id="drinkList" class="drink-list"></div>
+      <div class="modal-actions">
+        <button id="drinkNoBtn" class="ghost">Não, obrigado</button>
+        <button id="drinkYesBtn" class="primary">Sim, adicionar e finalizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cadastro de produtos -->
+  <div id="productsModal" class="modal">
+    <div class="modal-content wide">
+      <h3>📦 Cadastro de produtos</h3>
+      <div id="prodList" class="prod-list"></div>
+      <button id="newProductBtn" style="padding:10px;border:1px dashed var(--color-border-strong);border-radius:var(--radius-8);background:none;color:var(--color-brand-secondary);cursor:pointer;font-weight:600">＋ Novo produto</button>
+      <form id="productForm" class="form-grid" style="display:none">
+        <h4 style="margin:0">Produto</h4>
+        <div><label>Nome</label><input id="pNome" required /></div>
+        <div><label>Preço (R$)</label><input id="pPreco" type="number" step="0.01" min="0" required /></div>
+        <div><label>Descrição</label><textarea id="pDesc"></textarea></div>
+        <div><label>Categoria</label>
+          <select id="pCat">
+            <option value="meal">Marmita</option>
+            <option value="drink">Bebida</option>
+            <option value="dessert">Sobremesa</option>
+          </select>
+        </div>
+        <div>
+          <label>Imagem</label>
+          <input id="pImgFile" type="file" accept="image/*" />
+          <img id="pImgPrev" class="img-preview" style="display:none" alt="" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:var(--text-small)"><input id="pAtivo" type="checkbox" style="width:auto" checked /> Ativo no cardápio</div>
+        <div class="modal-actions">
+          <button type="button" id="pCancel" class="ghost">Cancelar</button>
+          <button type="submit" class="primary">Salvar produto</button>
+        </div>
+      </form>
+      <div class="modal-actions"><button id="productsClose" class="ghost">Fechar</button></div>
+    </div>
+  </div>
+
+  <!-- Configuração da loja -->
+  <div id="configModal" class="modal">
+    <div class="modal-content wide">
+      <h3>🏪 Configuração da loja</h3>
+      <form id="configForm" class="form-grid">
+        <div><label>Nome da loja</label><input id="cNome" /></div>
+        <div><label>Descrição</label><textarea id="cDesc"></textarea></div>
+        <div><label>Telefone WhatsApp (só números, com DDI — ex.: 5531999999999)</label><input id="cTelefone" /></div>
+        <div><label>Instagram (URL ou @)</label><input id="cInsta" /></div>
+        <div><label>Endereço</label><input id="cEndereco" /></div>
+        <div><label>Banner de boas-vindas</label><input id="cBanner" /></div>
+        <div>
+          <label>Logo</label>
+          <input id="cLogoFile" type="file" accept="image/*" />
+          <img id="cLogoPrev" class="img-preview" style="display:none" alt="" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="configClose" class="ghost">Fechar</button>
+          <button type="submit" class="primary">Salvar configuração</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
-  const products = [
+  let products = [
     { id:'mista', name:'Marmita Mista', price:23, img:'images/marmita_mista.jpg', cls:'meal', desc:'Arroz, farofa, vinagrete e churrasco misto (carne bovina, carne suína e linguiça).' },
     { id:'mista-completa', name:'Marmita Mista Completa', price:25, img:'images/marmita_mista_completa.png', cls:'meal', desc:'Arroz, feijão, farofa, vinagrete e churrasco misto (carne bovina, carne suína e linguiça).' },
     { id:'bovina', name:'Marmita Bovina', price:28, img:'images/marmita_bovina.png', cls:'meal', desc:'Arroz, feijão, farofa, vinagrete e churrasco bovino.' },
     { id:'so-misto', name:'Marmita Só Churrasco Misto', price:79.9, img:'images/marmita_mista.jpg', cls:'meal', desc:'Só o churrasco misto (carne bovina, carne suína e linguiça) — sem acompanhamentos.' },
     { id:'so-bovino', name:'Marmita Só Churrasco Bovino', price:99.9, img:'images/marmita_bovina.png', cls:'meal', desc:'Só o churrasco bovino — sem acompanhamentos.' },
-    { id:'mini-pudim', name:'Mini Pudim', price:6.0, img:'images/mini_pudim_para_vender.png', cls:'dessert', desc:'Mini pudim caseiro de leite condensado, bem cremoso, marca @pudins.daisa' },
     { id:'refrigerante', name:'Refrigerante Lata 220ml', price:5, img:'images/refrigerante_lata.png', cls:'drink', desc:'Lata 220ml: Coca-Cola, Fanta, Guaraná, Soda Limonada, geladas!' },
     { id:'suco', name:'Sucos Gelados', price:7, img:'images/sucos_gelados.png', cls:'drink', desc:'Diversos sabores, para acompanhar!' },
     { id:'mate-couro', name:'Mate Couro 1L', price:8, img:'images/mate_couro_1l.png', cls:'drink', desc:'Mate Couro 1L gelado.' },
     { id:'guarana-2l', name:'Guaraná 2L', price:12, img:'images/guarana_2l.png', cls:'drink', desc:'Guaraná 2L para compartilhar.' },
     { id:'coca-2l', name:'Coca-Cola 2L', price:14, img:'images/coca_2l.png', cls:'drink', desc:'Coca-Cola 2L bem gelada.' },
   ];
-  const cart = Object.fromEntries(products.map(p => [p.id, 0]));
+  let cart = {};
+  // Reconstrói o carrinho a partir dos produtos carregados (mantém quantidades já escolhidas)
+  function rebuildCart(){
+    const prev = cart;
+    cart = Object.fromEntries(products.map(p => [p.id, 0]));
+    Object.keys(prev).forEach(id => { if(id in cart) cart[id] = prev[id]; });
+  }
+  rebuildCart();
 
   const shippingRates = {
     'Acácias':2, 'Vila Maria':2, 'Santa Helena':2,
@@ -547,6 +667,20 @@ window.addEventListener('message', function(ev) {
   let isOpen = true;
   let deliveryMode = 'entrega';
   const ADMIN_PASSWORD = 'bdg2026';
+
+  // ── Configuração da loja (carregada do Supabase, com padrão local) ──
+  let storeConfig = {
+    nome: 'Churrasco na Marmita',
+    descricao: 'Cardápio digital com pedido rápido no WhatsApp.',
+    telefone: '553193817229',
+    endereco: 'Rua das Seringueiras Nº 26, Bairro das Acácias, Lagoa Santa',
+    instagram: 'https://www.instagram.com/churrasco_marmita/',
+    logo: 'images/logo.png',
+    banner: 'Bem vindo ao Churrasco na Marmita Lagoa Santa - MG'
+  };
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const sbHeaders = { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key, 'Content-Type': 'application/json' };
 
   const fmt = value => value.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
   const productsEl = document.getElementById('products');
@@ -651,13 +785,7 @@ window.addEventListener('message', function(ev) {
     if(!pwd) { errEl.textContent = 'Digite a senha.'; errEl.className = 'admin-error active'; return; }
     if(pwd.toLowerCase() === ADMIN_PASSWORD){
       document.getElementById('adminModal').classList.remove('active');
-      isOpen = !isOpen;
-      localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
-      if(SUPABASE.key && SUPABASE.url){
-        supabaseSync(isOpen);
-      }
-      render();
-      showStatus(isOpen ? '✅ Cardápio aberto para pedidos!' : '🛑 ESTAMOS FECHADOS NESTE MOMENTO. Pedidos desativados.');
+      openAdminPanel();
     } else {
       errEl.textContent = 'Senha incorreta!'; errEl.className = 'admin-error active';
     }
@@ -741,6 +869,8 @@ window.addEventListener('message', function(ev) {
     render();
   }
 
+  let pendingOrder = null;
+
   document.getElementById('finishBtn').addEventListener('click', () => {
     if(!isOpen) return showStatus('🛑 Fechado por enquanto. Volte mais tarde!');
     clearStatus();
@@ -763,50 +893,104 @@ window.addEventListener('message', function(ev) {
 
     const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
     const shipping = isRetirada ? 0 : (shippingRates[neighborhood] || 0);
-    const total = subtotal + shipping;
-    const itemsText = selected.map(p => `- ${p.name} x${cart[p.id]} = ${fmt(cart[p.id] * p.price)}`).join('%0A');
+
+    pendingOrder = {
+      name, phone, address, isRetirada, neighborhood, payment, observacao, shipping,
+      items: selected.map(p => ({ name: p.name, qty: cart[p.id], price: p.price }))
+    };
+    openDrinkModal();
+  });
+
+  // ── Sugestão de bebida antes de finalizar ──────────────────────────
+  let drinkCart = {};
+
+  function openDrinkModal(){
+    const drinks = products.filter(p => p.cls === 'drink');
+    // Se o pedido já contém bebida, não mostra a sugestão
+    const hasDrink = drinks.some(p => cart[p.id] > 0);
+    if(!drinks.length || hasDrink){ finalizeOrder([]); return; }
+    drinkCart = Object.fromEntries(drinks.map(p => [p.id, 0]));
+    renderDrinkList(drinks);
+    document.getElementById('drinkModal').classList.add('active');
+  }
+
+  function renderDrinkList(drinks){
+    document.getElementById('drinkList').innerHTML = drinks.map(p => `
+      <div class="drink-item">
+        <span><strong>${esc(p.name)}</strong><br /><small style="color:var(--color-text-tertiary)">${fmt(p.price)}</small></span>
+        <div class="qty">
+          <button aria-label="Diminuir ${esc(p.name)}" data-id="${p.id}" data-delta="-1">−</button>
+          <strong>${drinkCart[p.id]}</strong>
+          <button aria-label="Adicionar ${esc(p.name)}" data-id="${p.id}" data-delta="1">+</button>
+        </div>
+      </div>`).join('');
+    document.getElementById('drinkList').querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        drinkCart[b.dataset.id] = Math.max(0, drinkCart[b.dataset.id] + Number(b.dataset.delta));
+        renderDrinkList(drinks);
+      });
+    });
+  }
+
+  function finalizeOrder(drinks){
+    const o = pendingOrder;
+    if(!o) return;
+    const drinkItems = (drinks || []).filter(d => d.qty > 0);
+    const items = o.items.concat(drinkItems.map(d => ({ name: d.product.name, qty: d.qty, price: d.product.price })));
+    const subtotal = items.reduce((s,it) => s + it.qty*it.price, 0);
+    const total = subtotal + o.shipping;
+    const itemsText = items.map(it => `- ${it.name} x${it.qty} = ${fmt(it.qty * it.price)}`).join('%0A');
     const message = [
-      '*Novo pedido - Churrasco na Marmita*',
+      `*Novo pedido - ${storeConfig.nome}*`,
       '',
-      `*Nome:* ${name}`,
-      `*Telefone:* ${phone}`,
-      `*Bairro:* ${neighborhood}`,
-      isRetirada ? '*Endereço:* Retirada no local' : (address ? `*Endereço:* ${address}` : '*Endereço:* não informado'),
-      `*Pagamento:* ${payment}`,
-      observacao ? `*Observação:* ${observacao}` : '',
+      `*Nome:* ${o.name}`,
+      `*Telefone:* ${o.phone}`,
+      `*Bairro:* ${o.neighborhood}`,
+      o.isRetirada ? '*Endereço:* Retirada no local' : (o.address ? `*Endereço:* ${o.address}` : '*Endereço:* não informado'),
+      `*Pagamento:* ${o.payment}`,
+      o.observacao ? `*Observação:* ${o.observacao}` : '',
       '',
       '*Pedido:*',
       itemsText.replace(/%0A/g,'\n'),
       '',
       `*Subtotal:* ${fmt(subtotal)}`,
-      `*Frete:* ${fmt(shipping)}`,
+      `*Frete:* ${fmt(o.shipping)}`,
       `*Total:* ${fmt(total)}`
     ].join('\n').replace(/\n{3,}/g, '\n\n');
 
-    const url = `https://wa.me/553193817229?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${storeConfig.telefone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     if (typeof sendPrompt === 'function') {
-      sendPrompt(`Pedido iniciado no WhatsApp para Churrasco na Marmita. Cliente: ${name}.`);
+      sendPrompt(`Pedido iniciado no WhatsApp para ${storeConfig.nome}. Cliente: ${o.name}.`);
     }
 
     // Salva o pedido na tabela `pedidos` do Supabase (silencioso — falhas só vão ao console)
     saveOrder({
-      cliente: name,
-      telefone: phone,
-      bairro: neighborhood,
-      endereco: isRetirada ? null : (address || null),
-      pagamento: payment,
-      observacao: observacao || null,
-      itens: selected.map(p => ({
-        produto: p.name,
-        quantidade: cart[p.id],
-        preco_unitario: p.price,
-        subtotal: cart[p.id] * p.price
+      cliente: o.name,
+      telefone: o.phone,
+      bairro: o.neighborhood,
+      endereco: o.isRetirada ? null : (o.address || null),
+      pagamento: o.payment,
+      observacao: o.observacao || null,
+      itens: items.map(it => ({
+        produto: it.name,
+        quantidade: it.qty,
+        preco_unitario: it.price,
+        subtotal: it.qty * it.price
       })),
       subtotal: subtotal,
-      frete: shipping,
+      frete: o.shipping,
       total: total
     });
+
+    document.getElementById('drinkModal').classList.remove('active');
+    pendingOrder = null;
+  }
+
+  document.getElementById('drinkNoBtn').addEventListener('click', () => finalizeOrder([]));
+  document.getElementById('drinkYesBtn').addEventListener('click', () => {
+    const drinks = products.filter(p => p.cls === 'drink');
+    finalizeOrder(drinks.map(p => ({ product: p, qty: drinkCart[p.id] || 0 })));
   });
 
   document.getElementById('neighborhood').addEventListener('change', () => render());
@@ -818,14 +1002,285 @@ window.addEventListener('message', function(ev) {
   document.getElementById('adminPwdCancel').addEventListener('click', adminCancel);
   document.getElementById('adminPwd').addEventListener('keydown', e => { if(e.key === 'Enter') adminSubmit(); });
 
+  // ── Painel administrativo ──────────────────────────────────────────
+  function openAdminPanel(){
+    const btn = document.getElementById('panelToggleBtn');
+    btn.textContent = isOpen ? '🔴 Fechar loja' : '🟢 Abrir loja';
+    document.getElementById('panelStatus').textContent = isOpen
+      ? '🟢 Loja aberta para pedidos.'
+      : '🔴 Loja fechada no momento.';
+    document.getElementById('adminPanel').classList.add('active');
+  }
+  function closeAdminPanel(){ document.getElementById('adminPanel').classList.remove('active'); }
+
+  function toggleOpenClose(){
+    isOpen = !isOpen;
+    localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
+    if(SUPABASE.key && SUPABASE.url) supabaseSync(isOpen);
+    render();
+    openAdminPanel();
+    showStatus(isOpen ? '✅ Cardápio aberto para pedidos!' : '🛑 ESTAMOS FECHADOS NESTE MOMENTO. Pedidos desativados.');
+  }
+
+  // ── Produtos (Supabase) ────────────────────────────────────────────
+  let editingProductId = null;
+  function sbBase(){ return SUPABASE.url + '/rest/v1/'; }
+
+  async function loadProductsFromDB(){
+    if(!SUPABASE.url || !SUPABASE.key) return;
+    try {
+      const resp = await fetch(sbBase() + 'produtos?select=*&order=ordem.asc', {
+        headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
+      });
+      if(!resp.ok) return;
+      const data = await resp.json();
+      if(data && data.length){
+        products = data.filter(p => p.ativo !== false).map(p => ({
+          id: String(p.id),
+          name: p.nome,
+          price: Number(p.preco),
+          img: p.imagem || 'images/logo.png',
+          cls: p.categoria || 'meal',
+          desc: p.descricao || '',
+          dbId: p.id
+        }));
+        rebuildCart();
+      }
+    } catch(e){}
+  }
+
+  // Se o banco ainda não tiver produtos, insere os atuais (fallback) para edição
+  async function ensureProductsSeeded(){
+    try {
+      const resp = await fetch(sbBase() + 'produtos?select=id&limit=1', {
+        headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
+      });
+      if(!resp.ok) return;
+      const data = await resp.json();
+      if(data && data.length) return;
+      for(const p of products){
+        await fetch(sbBase() + 'produtos', {
+          method: 'POST',
+          headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ nome: p.name, preco: p.price, descricao: p.desc, imagem: p.img, categoria: p.cls, ativo: true, ordem: 0 })
+        });
+      }
+    } catch(e){}
+  }
+
+  async function openProductsModal(){
+    await ensureProductsSeeded();
+    await loadProductsFromDB();
+    renderProductList();
+    document.getElementById('productsModal').classList.add('active');
+  }
+
+  function renderProductList(){
+    const list = document.getElementById('prodList');
+    if(!products.length){
+      list.innerHTML = '<div class="empty" style="color:var(--color-text-tertiary)">Nenhum produto cadastrado.</div>';
+      return;
+    }
+    list.innerHTML = products.map(p => `
+      <div class="prod-row">
+        <img src="${esc(p.img)}" alt="" />
+        <div class="info"><strong>${esc(p.name)}</strong><small>${fmt(p.price)} · ${p.cls}</small></div>
+        <button title="Editar" data-edit="${esc(p.dbId || p.id)}">✏️</button>
+        <button class="danger" title="Excluir" data-del="${esc(p.dbId || '')}">🗑️</button>
+      </div>`).join('');
+    list.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => startEditProduct(b.dataset.edit)));
+    list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteProduct(b.dataset.del)));
+  }
+
+  function startEditProduct(dbId){
+    const p = products.find(x => String(x.dbId) === String(dbId) || x.id === String(dbId));
+    if(!p) return;
+    editingProductId = p.dbId || p.id;
+    document.getElementById('pNome').value = p.name;
+    document.getElementById('pPreco').value = p.price;
+    document.getElementById('pDesc').value = p.desc;
+    document.getElementById('pCat').value = p.cls;
+    document.getElementById('pAtivo').checked = true;
+    document.getElementById('pImgPrev').src = p.img;
+    document.getElementById('pImgPrev').style.display = '';
+    document.getElementById('productForm').style.display = 'grid';
+  }
+
+  async function deleteProduct(dbId){
+    if(!dbId) return;
+    if(!confirm('Excluir este produto?')) return;
+    try {
+      const resp = await fetch(sbBase() + 'produtos?id=eq.' + encodeURIComponent(dbId), {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
+      });
+      if(!resp.ok){ showStatus('Erro ao excluir produto.'); return; }
+      await loadProductsFromDB();
+      renderProductList();
+      showStatus('✅ Produto excluído.');
+    } catch(e){ showStatus('Erro ao excluir produto.'); }
+  }
+
+  function readFileAsDataURL(file){
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('panelToggleBtn').addEventListener('click', toggleOpenClose);
+  document.getElementById('panelCloseBtn').addEventListener('click', closeAdminPanel);
+  document.getElementById('panelProductsBtn').addEventListener('click', () => { closeAdminPanel(); openProductsModal(); });
+  document.getElementById('panelConfigBtn').addEventListener('click', () => { closeAdminPanel(); openConfigModal(); });
+
+  document.getElementById('newProductBtn').addEventListener('click', () => {
+    editingProductId = null;
+    document.getElementById('productForm').reset();
+    document.getElementById('pImgPrev').style.display = 'none';
+    document.getElementById('productForm').style.display = 'grid';
+  });
+  document.getElementById('pCancel').addEventListener('click', () => {
+    document.getElementById('productForm').style.display = 'none';
+    editingProductId = null;
+  });
+  document.getElementById('productsClose').addEventListener('click', () => {
+    document.getElementById('productsModal').classList.remove('active');
+  });
+
+  document.getElementById('productForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome = document.getElementById('pNome').value.trim();
+    const preco = parseFloat(document.getElementById('pPreco').value);
+    const desc = document.getElementById('pDesc').value.trim();
+    const cat = document.getElementById('pCat').value;
+    const ativo = document.getElementById('pAtivo').checked;
+    if(!nome) return showStatus('Informe o nome do produto.');
+    if(isNaN(preco) || preco <= 0) return showStatus('Informe um preço válido.');
+    let imagem = document.getElementById('pImgPrev').src;
+    const file = document.getElementById('pImgFile').files[0];
+    if(file) imagem = await readFileAsDataURL(file);
+    const body = { nome, preco, descricao: desc, categoria: cat, imagem, ativo };
+    try {
+      let resp;
+      if(editingProductId){
+        resp = await fetch(sbBase() + 'produtos?id=eq.' + encodeURIComponent(editingProductId), {
+          method: 'PATCH', headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }), body: JSON.stringify(body)
+        });
+      } else {
+        resp = await fetch(sbBase() + 'produtos', {
+          method: 'POST', headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }), body: JSON.stringify(body)
+        });
+      }
+      if(!resp.ok){ showStatus('Erro ao salvar produto no Supabase.'); return; }
+    } catch(err){ showStatus('Erro ao salvar produto no Supabase.'); return; }
+    document.getElementById('productForm').reset();
+    document.getElementById('pImgPrev').style.display = 'none';
+    editingProductId = null;
+    await loadProductsFromDB();
+    renderProductList();
+    showStatus('✅ Produto salvo.');
+  });
+
+  // ── Configuração da loja (Supabase) ────────────────────────────────
+  async function loadConfigFromDB(){
+    if(!SUPABASE.url || !SUPABASE.key) return;
+    try {
+      const resp = await fetch(sbBase() + 'config?id=eq.1&select=*', {
+        headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
+      });
+      if(!resp.ok) return;
+      const data = await resp.json();
+      if(data && data.length){
+        const c = data[0];
+        if(c.nome_loja) storeConfig.nome = c.nome_loja;
+        if(c.descricao_loja) storeConfig.descricao = c.descricao_loja;
+        if(c.telefone) storeConfig.telefone = c.telefone;
+        if(c.endereco) storeConfig.endereco = c.endereco;
+        if(c.instagram) storeConfig.instagram = c.instagram;
+        if(c.logo) storeConfig.logo = c.logo;
+        if(c.banner) storeConfig.banner = c.banner;
+      }
+    } catch(e){}
+  }
+
+  function applyConfig(){
+    const banner = document.querySelector('.welcome-banner');
+    if(banner) banner.textContent = storeConfig.banner;
+    const h1 = document.querySelector('.hero .brand h1');
+    if(h1) h1.textContent = storeConfig.nome;
+    const p = document.querySelector('.hero .brand p');
+    if(p) p.textContent = storeConfig.descricao;
+    const logoImg = document.querySelector('.hero .brand .logo img');
+    if(logoImg) logoImg.src = storeConfig.logo;
+    const waLink = document.querySelector('.hero .chips a[href*="wa.me"]');
+    if(waLink){ waLink.href = 'https://wa.me/' + storeConfig.telefone; waLink.textContent = formatPhone(storeConfig.telefone); }
+    const instaLink = document.querySelector('.hero .chips a[href*="instagram"]');
+    if(instaLink) instaLink.href = storeConfig.instagram;
+    const addrChip = document.querySelector('.hero .chips span.chip');
+    if(addrChip) addrChip.textContent = storeConfig.endereco;
+    document.title = storeConfig.nome;
+  }
+
+  function formatPhone(num){
+    const d = String(num).replace(/\D/g,'');
+    if(d.length === 13) return '+'+d.slice(0,2)+' ('+d.slice(2,4)+') '+d.slice(4,9)+'-'+d.slice(9);
+    if(d.length === 12) return '+'+d.slice(0,2)+' ('+d.slice(2,4)+') '+d.slice(4,8)+'-'+d.slice(8);
+    return '+'+d;
+  }
+
+  function openConfigModal(){
+    document.getElementById('cNome').value = storeConfig.nome;
+    document.getElementById('cDesc').value = storeConfig.descricao;
+    document.getElementById('cTelefone').value = storeConfig.telefone;
+    document.getElementById('cInsta').value = storeConfig.instagram;
+    document.getElementById('cEndereco').value = storeConfig.endereco;
+    document.getElementById('cBanner').value = storeConfig.banner;
+    const prev = document.getElementById('cLogoPrev');
+    if(storeConfig.logo){ prev.src = storeConfig.logo; prev.style.display = ''; }
+    document.getElementById('configModal').classList.add('active');
+  }
+
+  document.getElementById('configClose').addEventListener('click', () => document.getElementById('configModal').classList.remove('active'));
+
+  document.getElementById('configForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const file = document.getElementById('cLogoFile').files[0];
+    let logo = document.getElementById('cLogoPrev').src || storeConfig.logo;
+    if(file) logo = await readFileAsDataURL(file);
+    const body = {
+      nome_loja: document.getElementById('cNome').value.trim(),
+      descricao_loja: document.getElementById('cDesc').value.trim(),
+      telefone: document.getElementById('cTelefone').value.replace(/\D/g,''),
+      instagram: document.getElementById('cInsta').value.trim(),
+      endereco: document.getElementById('cEndereco').value.trim(),
+      banner: document.getElementById('cBanner').value.trim(),
+      logo
+    };
+    try {
+      const resp = await fetch(sbBase() + 'config?id=eq.1', {
+        method: 'PATCH', headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }), body: JSON.stringify(body)
+      });
+      if(!resp.ok){ showStatus('Erro ao salvar configuração.'); return; }
+    } catch(err){ showStatus('Erro ao salvar configuração.'); return; }
+    await loadConfigFromDB();
+    applyConfig();
+    document.getElementById('configModal').classList.remove('active');
+    showStatus('✅ Configuração salva.');
+  });
+
   // ── Inicialização assíncrona ───────────────────────────────────────
   (async function(){
+    await Promise.all([loadProductsFromDB(), loadConfigFromDB()]);
+    rebuildCart();
     var s = new URLSearchParams(window.location.search).get('status');
     if(s === 'fechado') isOpen = false;
     else if(s === 'aberto') isOpen = true;
     else if(!(await loadRemoteStatus())){
       isOpen = localStorage.getItem('churrasco_open') !== 'false';
     }
+    applyConfig();
     render();
   })();
 </script></body>
