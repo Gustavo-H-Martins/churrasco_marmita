@@ -198,8 +198,8 @@ tbody tr.done{opacity:.65}
 .l-items{font-size:12px;font-weight:700}
 .l-obs{font-size:10px;color:#333;margin-top:2mm;font-style:italic}
 .l-total{font-size:16px;font-weight:900;margin-top:3mm}
-.l-pay{font-size:12px;margin-top:1mm}
-</style>
+.l-pay{font-size:12px;margin-top:1mm}  .l-sep2{border-top:1px solid #999;margin:3mm 0}
+  .l-foot{font-size:11px;margin-top:2mm;text-align:center;color:#333}</style>
 </head>
 <body>
 <div class="page">
@@ -648,6 +648,9 @@ tbody tr.done{opacity:.65}
       <div class="l-sep"></div>
       <div class="l-total">TOTAL ${fmtMoney(o.total)}</div>
       <div class="l-pay">Pagamento: ${esc(o.pagamento)}</div>
+      <div class="l-sep2"></div>
+      <div class="l-foot">📸 @churrasco_marmita</div>
+      <div class="l-foot">📞 +55 (31) 9381-7229</div>
     </div>`;
   }
   async function markPrinted(ids){
