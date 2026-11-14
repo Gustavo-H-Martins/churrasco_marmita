@@ -36,7 +36,4 @@ insert into bairros (nome, taxa, grupo, ordem) values
   ('Bouganvile', 10, 'Condomínio', 35),
   ('Maripousas', 5, 'Condomínio', 36),
   ('Trilhas do Sol', 5, 'Condomínio', 37)
-on conflict (nome) do update set
-  taxa = excluded.taxa,
-  grupo = excluded.grupo,
-  ordem = excluded.ordem;
+on conflict (nome) do nothing;

@@ -1,5 +1,6 @@
 -- ATENÇÃO: remove colunas e tabelas novas. Exporte financeiro e logs antes.
 -- Use apenas se precisar voltar a produção ao estado anterior ao app administrativo.
+-- Este rollback restaura RLS anônima aberta (true/true) em pedidos, produtos, config e status.
 
 -- Remove o trigger antes das funções/tabelas que ele referencia.
 drop trigger if exists on_auth_user_created on auth.users;
@@ -21,6 +22,8 @@ alter table pedidos
   drop column if exists faturado,
   drop column if exists faturado_em,
   drop column if exists faturado_por;
+
+drop index if exists public.pedidos_created_idx;
 
 drop table if exists logs;
 drop table if exists financeiro;

@@ -27,6 +27,7 @@ language sql security definer set search_path = public as $$
   update perfis set nome = novo_nome where id = auth.uid();
 $$;
 grant execute on function public.atualizar_meu_nome(text) to authenticated;
+revoke execute on function public.atualizar_meu_nome(text) from public, anon;
 
 create or replace function public.criar_perfil_para_novo_usuario()
 returns trigger
@@ -62,8 +63,12 @@ create policy bairros_write on bairros for all
   using (eh_equipe()) with check (eh_equipe());
 
 drop policy if exists motoboys_all on motoboys;
-create policy motoboys_all on motoboys for all
-  using (eh_equipe()) with check (eh_equipe());
+drop policy if exists motoboys_select on motoboys;
+drop policy if exists motoboys_insert on motoboys;
+drop policy if exists motoboys_update on motoboys;
+create policy motoboys_select on motoboys for select using (eh_equipe());
+create policy motoboys_insert on motoboys for insert with check (eh_equipe());
+create policy motoboys_update on motoboys for update using (eh_equipe()) with check (eh_equipe());
 
 drop policy if exists perfis_select on perfis;
 create policy perfis_select on perfis for select
