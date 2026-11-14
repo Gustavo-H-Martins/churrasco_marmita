@@ -3275,7 +3275,12 @@ export async function renderFinanceiro(root, ctx) {
       ['data','tipo','categoria','descricao','valor','origem'],
       ...lancamentos.map(l => [l.data, l.tipo, l.categoria, l.descricao, String(l.valor).replace('.', ','), l.origem])
     ];
-    const csv = linhas.map(linha => linha.map(c => `"${String(c).replaceAll('"', '""')}"`).join(';')).join('\n');
+    const celula = (c) => {
+      let s = String(c);
+      if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+      return `"${s.replaceAll('"', '""')}"`;
+    };
+    const csv = '﻿' + linhas.map(linha => linha.map(celula).join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
