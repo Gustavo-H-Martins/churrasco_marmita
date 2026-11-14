@@ -281,6 +281,7 @@ language sql security definer set search_path = public as $$
   update perfis set nome = novo_nome where id = auth.uid();
 $$;
 grant execute on function public.atualizar_meu_nome(text) to authenticated;
+revoke execute on function public.atualizar_meu_nome(text) from public, anon;
 
 create or replace function public.criar_perfil_para_novo_usuario()
 returns trigger
@@ -316,7 +317,14 @@ create policy bairros_write on bairros for all
   using (eh_equipe()) with check (eh_equipe());
 
 drop policy if exists motoboys_all on motoboys;
-create policy motoboys_all on motoboys for all
+drop policy if exists motoboys_select on motoboys;
+drop policy if exists motoboys_insert on motoboys;
+drop policy if exists motoboys_update on motoboys;
+create policy motoboys_select on motoboys for select
+  using (eh_equipe());
+create policy motoboys_insert on motoboys for insert
+  with check (eh_equipe());
+create policy motoboys_update on motoboys for update
   using (eh_equipe()) with check (eh_equipe());
 
 drop policy if exists perfis_select on perfis;
@@ -392,10 +400,7 @@ insert into bairros (nome, taxa, grupo, ordem) values
   ('Bouganvile', 10, 'Condomínio', 35),
   ('Maripousas', 5, 'Condomínio', 36),
   ('Trilhas do Sol', 5, 'Condomínio', 37)
-on conflict (nome) do update set
-  taxa = excluded.taxa,
-  grupo = excluded.grupo,
-  ordem = excluded.ordem;
+on conflict (nome) do nothing;
 ```
 
 - [ ] **Step 4: Escrever `database/004-backfill.sql`**
@@ -416,6 +421,7 @@ update pedidos set valor_bruto = total where valor_bruto is null;
 
 ```sql
 -- ATENÇÃO: remove colunas e tabelas novas. Exporte financeiro e logs antes.
+-- O banco volta às políticas anônimas abertas de pedidos/produtos/config/status.
 -- Use apenas se precisar voltar a produção ao estado anterior ao app administrativo.
 
 -- Remove o trigger antes das funções/tabelas que ele referencia.
@@ -438,6 +444,8 @@ alter table pedidos
   drop column if exists faturado,
   drop column if exists faturado_em,
   drop column if exists faturado_por;
+
+drop index if exists public.pedidos_created_idx;
 
 drop table if exists logs;
 drop table if exists financeiro;

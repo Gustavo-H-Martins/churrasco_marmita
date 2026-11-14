@@ -511,7 +511,7 @@ assets/vendor/sortable.min.js
 supabase/functions/criar-usuario/index.ts
 
 database/001-schema.sql
-database/002-rls.sql
+database/002-rls-base.sql
 database/003-seed-bairros.sql
 database/004-backfill.sql
 database/999-rollback.sql
