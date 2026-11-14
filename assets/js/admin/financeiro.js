@@ -35,13 +35,18 @@ export async function renderFinanceiro(root, ctx) {
 
   async function carregar() {
     mostrarErro('');
+    root.querySelector('#finCards').innerHTML = '<p class="carregando">Carregando…</p>';
+    root.querySelector('#finLista').innerHTML = '';
     try {
       const de = root.querySelector('#finInicio').value;
       const ate = root.querySelector('#finFim').value;
       lancamentos = await listarFinanceiro({ inicio: de, fim: ate });
       desenhar();
+      return true;
     } catch (e) {
+      root.querySelector('#finCards').innerHTML = '';
       mostrarErro(`Erro ao carregar financeiro: ${e.message}`);
+      return false;
     }
   }
 
@@ -93,13 +98,20 @@ export async function renderFinanceiro(root, ctx) {
         b.disabled = true;
         try {
           await excluirLancamento(l.id);
-          await registrarLog('excluir_lancamento', 'financeiro', l.id, { descricao: l.descricao, valor: l.valor });
-          await carregar();
         } catch (e) {
           mostrarErro(`Erro ao excluir lançamento: ${e.message}`);
-        } finally {
           if (b.isConnected) b.disabled = false;
+          return;
         }
+        let aviso = '';
+        try {
+          await registrarLog('excluir_lancamento', 'financeiro', l.id, { descricao: l.descricao, valor: l.valor });
+        } catch (e) {
+          aviso = `Lançamento excluído, mas o log falhou: ${e.message}`;
+        }
+        const ok = await carregar();
+        if (b.isConnected) b.disabled = false;
+        if (ok && aviso) mostrarErro(aviso);
       });
     });
   }
@@ -152,14 +164,20 @@ export async function renderFinanceiro(root, ctx) {
       try {
         if (l.id) await atualizarLancamento(l.id, dados);
         else await criarLancamento(dados);
-        await registrarLog(l.id ? 'editar_lancamento' : 'criar_lancamento', 'financeiro', l.id || null, dados);
-        area.innerHTML = '';
-        await carregar();
       } catch (err) {
         erroEl.textContent = `Erro ao salvar lançamento: ${err.message}`;
-      } finally {
         if (botao.isConnected) botao.disabled = false;
+        return;
       }
+      let aviso = '';
+      try {
+        await registrarLog(l.id ? 'editar_lancamento' : 'criar_lancamento', 'financeiro', l.id || null, dados);
+      } catch (err) {
+        aviso = `Lançamento salvo, mas o log falhou: ${err.message}`;
+      }
+      area.innerHTML = '';
+      const ok = await carregar();
+      if (ok && aviso) mostrarErro(aviso);
     });
   }
 
@@ -170,7 +188,12 @@ export async function renderFinanceiro(root, ctx) {
       ['data','tipo','categoria','descricao','valor','origem'],
       ...lancamentos.map(l => [l.data, l.tipo, l.categoria, l.descricao, String(l.valor).replace('.', ','), l.origem])
     ];
-    const csv = linhas.map(linha => linha.map(c => `"${String(c).replaceAll('"', '""')}"`).join(';')).join('\n');
+    const celula = (c) => {
+      let s = String(c);
+      if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+      return `"${s.replaceAll('"', '""')}"`;
+    };
+    const csv = '﻿' + linhas.map(linha => linha.map(celula).join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
