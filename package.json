@@ -4,7 +4,7 @@
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node --test",
+    "test": "node scripts/run-tests.mjs",
     "serve": "npx serve ."
   }
 }
