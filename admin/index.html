@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Churrasco na Marmita</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+  <section id="loginView" class="login-view" hidden>
+    <form id="loginForm" class="login-card">
+      <h1>Churrasco na Marmita</h1>
+      <p>Acesso administrativo</p>
+      <label for="loginEmail">E-mail</label>
+      <input id="loginEmail" type="email" autocomplete="username" required />
+      <label for="loginSenha">Senha</label>
+      <input id="loginSenha" type="password" autocomplete="current-password" required />
+      <button type="submit">Entrar</button>
+      <div id="loginErro" class="erro" role="alert"></div>
+    </form>
+  </section>
+
+  <div id="appView" hidden>
+    <header class="admin-header">
+      <div>
+        <strong>Churrasco na Marmita</strong>
+        <span id="stagingBadge" class="badge-staging" hidden>STAGING</span>
+      </div>
+      <div class="admin-user">
+        <span id="usuarioInfo"></span>
+        <button id="sairBtn" type="button" class="btn-ghost">Sair</button>
+      </div>
+    </header>
+    <nav id="tabs" class="admin-tabs" aria-label="Seções do admin"></nav>
+    <main id="tabRoot" class="admin-main"></main>
+  </div>
+
+  <div id="modalRoot"></div>
+
+  <script src="../assets/vendor/supabase-js.umd.js"></script>
+  <script src="../assets/vendor/sortable.min.js"></script>
+  <script type="module" src="../assets/js/admin/app.js"></script>
+
+  <div id="printArea"></div>
+</body>
+</html>

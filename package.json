@@ -1,0 +1,10 @@
+{
+  "name": "churrasco-marmita",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node scripts/run-tests.mjs",
+    "serve": "npx serve ."
+  }
+}
