@@ -13,6 +13,13 @@ export function calcularTaxa(bruto, recebido) {
   return arred2(Math.max(0, (Number(bruto) || 0) - (Number(recebido) || 0)));
 }
 
+export function calcularFaturamento(bruto, recebido) {
+  const b = arred2(bruto);
+  const r = arred2(recebido);
+  const taxa = arred2(Math.max(0, b - r));
+  return { bruto: b, recebido: r, taxa, liquido: r };
+}
+
 export function calcularFrete(bairros, nome) {
   const b = (bairros || []).find(x => x.nome === nome);
   return b ? arred2(b.taxa) : 0;

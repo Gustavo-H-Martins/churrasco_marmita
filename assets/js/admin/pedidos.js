@@ -1,6 +1,7 @@
 import { listarPedidosKanban, atualizarPedido, listarMotoboys } from '../db.js';
 import { registrarLog } from '../auth.js';
 import { montarKanban } from './kanban.js';
+import { abrirPedidoManual, abrirFaturamento } from './pedido-form.js';
 import { renderBairros } from './bairros.js';
 import { imprimirPedido, copiarEndereco } from './impressao.js';
 import { sincronizarEntradaPedido, sincronizarTaxaFaturamento, removerLancamento, removerLancamentosAutomaticos } from '../financeiro-sync.js';
@@ -12,6 +13,7 @@ export async function renderPedidos(root, ctx) {
     <div class="barra-pedidos">
       <h2>Pedidos</h2>
       <div class="acoes">
+        <button type="button" id="novoPedidoBtn" class="btn">+ Novo pedido</button>
         <button type="button" id="toggleBairros" class="btn-ghost">Bairros e taxas</button>
         <span id="statusKanban" class="dica"></span>
       </div>
@@ -21,6 +23,9 @@ export async function renderPedidos(root, ctx) {
 
   const kanbanArea = root.querySelector('#kanbanArea');
   const statusEl = root.querySelector('#statusKanban');
+  root.querySelector('#novoPedidoBtn').addEventListener('click', () => {
+    abrirPedidoManual({ ctx, onSalvo: carregar });
+  });
   let pedidos = [];
   let motoboys = [];
   let parado = false;
@@ -266,6 +271,7 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
           <button type="button" id="btnImprimir" class="btn-ghost">Imprimir etiqueta</button>
           <button type="button" id="btnCopiar" class="btn-ghost">Copiar endereço</button>
           ${admin && pedido.faturado ? '<button type="button" id="btnDesfaturar" class="btn-ghost">Desfaturar</button>' : ''}
+          ${admin && !pedido.cancelado ? '<button type="button" id="btnFaturar" class="btn">Faturar</button>' : ''}
           <button type="button" id="btnFechar" class="btn-ghost">Fechar</button>
         </div>
         <div id="detalheMsg" class="msg"></div>
@@ -324,6 +330,14 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
       } catch (err) {
         msg.textContent = 'Falha ao desfaturar: ' + err.message;
       }
+    });
+  }
+
+  const btnFaturar = rootModal.querySelector('#btnFaturar');
+  if (btnFaturar) {
+    btnFaturar.addEventListener('click', () => {
+      rootModal.innerHTML = '';
+      abrirFaturamento(pedido, { ctx, onSalvo: aoAtualizar });
     });
   }
 }

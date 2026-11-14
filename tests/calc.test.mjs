@@ -88,3 +88,11 @@ test('validações de bairro e pedido manual', () => {
   assert.deepEqual(validarPedidoManual({ cliente: '', itens: '', total: 0 }), ['Informe o cliente.', 'Informe pelo menos um item.', 'Informe um valor total maior que zero.']);
   assert.deepEqual(validarPedidoManual({ cliente: 'Ana', itens: '1 marmita', total: 30, canal: 'ifood' }), []);
 });
+
+import { calcularFaturamento } from '../assets/js/calc.js';
+
+test('calcularFaturamento devolve taxa e líquido', () => {
+  assert.deepEqual(calcularFaturamento(100, 85), { bruto: 100, recebido: 85, taxa: 15, liquido: 85 });
+  assert.deepEqual(calcularFaturamento(100, 100), { bruto: 100, recebido: 100, taxa: 0, liquido: 100 });
+  assert.deepEqual(calcularFaturamento(100, 120), { bruto: 100, recebido: 120, taxa: 0, liquido: 120 });
+});
