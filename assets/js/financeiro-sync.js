@@ -68,6 +68,12 @@ export async function removerLancamento(pedidoId, origem) {
 }
 
 export async function removerLancamentosAutomaticos(pedidoId) {
-  await removerLancamento(pedidoId, 'pedido');
-  await removerLancamento(pedidoId, 'taxa');
+  const resultados = await Promise.allSettled([
+    removerLancamento(pedidoId, 'pedido'),
+    removerLancamento(pedidoId, 'taxa')
+  ]);
+  const falhas = resultados.filter(r => r.status === 'rejected');
+  if (falhas.length) {
+    throw new Error(falhas.map(f => f.reason?.message || String(f.reason)).join('; '));
+  }
 }

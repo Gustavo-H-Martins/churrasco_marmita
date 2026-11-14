@@ -3,8 +3,9 @@ import { registrarLog } from '../auth.js';
 import { montarKanban } from './kanban.js';
 import { renderBairros } from './bairros.js';
 import { imprimirPedido, copiarEndereco } from './impressao.js';
-import { sincronizarEntradaPedido, removerLancamento, removerLancamentosAutomaticos } from '../financeiro-sync.js';
+import { sincronizarEntradaPedido, sincronizarTaxaFaturamento, removerLancamento, removerLancamentosAutomaticos } from '../financeiro-sync.js';
 import { fmtBRL, esc, dataBR } from '../format.js';
+import { podeMover } from '../calc.js';
 
 export async function renderPedidos(root, ctx) {
   root.innerHTML = `
@@ -24,15 +25,29 @@ export async function renderPedidos(root, ctx) {
   let motoboys = [];
   let parado = false;
   let timer = null;
+  let carregando = false;
 
   async function carregar() {
-    const [lista, m] = await Promise.all([
-      listarPedidosKanban(inicioDoDiaISO()),
-      listarMotoboys()
-    ]);
-    motoboys = m;
-    pedidos = comSequenciaDia(lista);
-    desenhar();
+    if (carregando) return;
+    carregando = true;
+    try {
+      const [lista, m] = await Promise.all([
+        listarPedidosKanban(inicioDoDiaISO()),
+        listarMotoboys()
+      ]);
+      motoboys = m;
+      pedidos = comSequenciaDia(lista);
+      desenhar();
+    } catch (e) {
+      kanbanArea.innerHTML = `
+        <div class="erro">
+          Não foi possível carregar os pedidos: ${esc(e.message || e)}
+          <button type="button" id="recarregarKanban" class="btn-ghost">Tentar novamente</button>
+        </div>`;
+      kanbanArea.querySelector('#recarregarKanban').addEventListener('click', () => { carregar(); });
+    } finally {
+      carregando = false;
+    }
   }
 
   function desenhar() {
@@ -51,6 +66,12 @@ export async function renderPedidos(root, ctx) {
 
   async function mover(pedido, destino) {
     if (destino === pedido.status_kanban) return;
+    const regra = podeMover(pedido, destino);
+    if (!regra.ok) {
+      statusEl.textContent = regra.motivo;
+      return;
+    }
+    statusEl.textContent = '';
     const patch = { status_kanban: destino, posicao: Date.now() };
     if (destino === 'concluido') patch.entregue_em = new Date().toISOString();
     try {
@@ -70,13 +91,18 @@ export async function renderPedidos(root, ctx) {
     if (!motoboyId) return;
     const motoboy = motoboys.find(m => Number(m.id) === Number(motoboyId));
     if (!motoboy) return;
-    await atualizarPedido(pedido.id, {
-      motoboy_id: motoboy.id,
-      motoboy_valor_entrega: Number(motoboy.valor_entrega || 0),
-      motoboy_atribuido_em: new Date().toISOString()
-    });
-    await registrarLog('atribuir_motoboy', 'pedidos', pedido.id, { motoboy: motoboy.nome, valor: motoboy.valor_entrega });
-    await carregar();
+    try {
+      await atualizarPedido(pedido.id, {
+        motoboy_id: motoboy.id,
+        motoboy_valor_entrega: Number(motoboy.valor_entrega || 0),
+        motoboy_atribuido_em: new Date().toISOString()
+      });
+      await registrarLog('atribuir_motoboy', 'pedidos', pedido.id, { motoboy: motoboy.nome, valor: motoboy.valor_entrega });
+      await carregar();
+    } catch (e) {
+      statusEl.textContent = 'Falha ao atribuir motoboy: ' + e.message;
+      await carregar();
+    }
   }
 
   function abrirDetalhe(id) {
@@ -135,6 +161,8 @@ export async function renderPedidos(root, ctx) {
         await carregar();
       } catch (err) {
         erro.textContent = 'Falha ao cancelar: ' + err.message;
+        statusEl.textContent = 'Falha ao cancelar o pedido #' + pedido.id + ': ' + err.message;
+        await carregar();
       }
     });
   }
@@ -142,17 +170,31 @@ export async function renderPedidos(root, ctx) {
   async function restaurar(pedido) {
     if (ctx.perfil?.papel !== 'admin') return alert('Apenas administradores podem restaurar.');
     const destino = pedido.status_anterior || 'novo';
-    await atualizarPedido(pedido.id, {
-      cancelado: false,
-      status_kanban: destino,
-      status_anterior: null,
-      motivo_cancelamento: null,
-      cancelado_por: null,
-      cancelado_em: null,
-      cancelado_ip: null
-    });
-    await registrarLog('restaurar_pedido', 'pedidos', pedido.id, { destino });
-    await carregar();
+    try {
+      await atualizarPedido(pedido.id, {
+        cancelado: false,
+        status_kanban: destino,
+        status_anterior: null,
+        motivo_cancelamento: null,
+        cancelado_por: null,
+        cancelado_em: null,
+        cancelado_ip: null
+      });
+      await registrarLog('restaurar_pedido', 'pedidos', pedido.id, { destino });
+      try {
+        if (pedido.finalizado) {
+          await sincronizarEntradaPedido({ ...pedido, cancelado: false, status_kanban: destino });
+        }
+        if (pedido.faturado && Number(pedido.taxa) > 0) {
+          await sincronizarTaxaFaturamento(pedido.id, Number(pedido.taxa), `Taxa do pedido #${pedido.id}`);
+        }
+      } catch (errFinanceiro) {
+        statusEl.textContent = 'Pedido restaurado, mas a sincronização financeira falhou: ' + errFinanceiro.message;
+      }
+      await carregar();
+    } catch (err) {
+      statusEl.textContent = 'Falha ao restaurar: ' + err.message;
+    }
   }
 
   const area = root.querySelector('#bairrosArea');
@@ -188,10 +230,8 @@ function comSequenciaDia(pedidos) {
 }
 
 function inicioDoDiaISO() {
-  const agora = new Date();
-  const br = new Date(agora.getTime() - 3 * 60 * 60 * 1000);
-  br.setHours(0, 0, 0, 0);
-  return new Date(br.getTime() + 3 * 60 * 60 * 1000).toISOString();
+  const dia = dataBR(new Date().toISOString());
+  return `${dia}T00:00:00-03:00`;
 }
 
 function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
@@ -207,7 +247,7 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
   rootModal.innerHTML = `
     <div class="modal-fundo">
       <div class="modal-caixa">
-        <h3>${esc(pedido.cliente)} · #${pedido.seqDia || pedido.id}</h3>
+        <h3>${esc(pedido.cliente || '—')} · #${pedido.seqDia || pedido.id}</h3>
         <p><strong>Total:</strong> ${fmtBRL(pedido.total)}</p>
         <p><strong>Bairro:</strong> ${esc(pedido.bairro || '—')}</p>
         <p><strong>Endereço:</strong> ${esc(pedido.endereco || '—')}</p>
@@ -260,6 +300,7 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
     } catch (err) {
       e.target.checked = !e.target.checked;
       msg.textContent = 'Falha ao atualizar pagamento: ' + err.message;
+      await aoAtualizar();
     }
   });
 
@@ -269,7 +310,6 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
       const msg = rootModal.querySelector('#detalheMsg');
       if (!confirm('Desfaturar este pedido? A taxa será removida do financeiro.')) return;
       try {
-        await removerLancamento(pedido.id, 'taxa');
         await atualizarPedido(pedido.id, {
           faturado: false,
           valor_recebido: null,
@@ -277,8 +317,9 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
           faturado_em: null,
           faturado_por: null
         });
+        await removerLancamento(pedido.id, 'taxa');
         await registrarLog('desfaturar_pedido', 'pedidos', pedido.id, {});
-        msg.textContent = 'Pedido desfaturado.';
+        rootModal.innerHTML = '';
         await aoAtualizar();
       } catch (err) {
         msg.textContent = 'Falha ao desfaturar: ' + err.message;

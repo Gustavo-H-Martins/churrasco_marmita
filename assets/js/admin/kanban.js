@@ -21,7 +21,7 @@ export function montarKanban({ container, pedidos, motoboys, perfil, onMover, on
 
   container.querySelectorAll('.cartao').forEach(el => {
     el.addEventListener('click', (e) => {
-      if (e.target.closest('button,select')) return;
+      if (e.target.closest('button,select,label')) return;
       onAbrir(Number(el.dataset.id));
     });
   });
@@ -53,12 +53,14 @@ export function montarKanban({ container, pedidos, motoboys, perfil, onMover, on
         animation: 150,
         ghostClass: 'cartao-fantasma',
         onEnd: async (evt) => {
+          if (evt.from === evt.to) return;
           const id = Number(evt.item.dataset.id);
           const pedido = pedidos.find(p => Number(p.id) === id);
           const destino = evt.to.dataset.etapa;
           if (!pedido) return;
           const regra = podeMover(pedido, destino);
           if (!regra.ok) {
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] ?? null);
             alert(regra.motivo);
             return onAbrir(pedido.id);
           }
