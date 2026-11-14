@@ -2506,6 +2506,8 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
 }
 ```
 
+**Nota de robustez (R29–R35):** a restauração reconcilia o financeiro (recria entrada se pago; recria taxa se faturado). `podeMover` é validado dentro de `mover()`, não só no arrasto. `removerLancamentosAutomaticos` tenta as duas origens com `Promise.allSettled` e o catch do cancelamento recarrega o Kanban e mostra o erro. `carregar` tem try/catch, botão "Tentar novamente" e trava contra cargas sobrepostas. O início do dia usa `dataBR` + `T00:00:00-03:00`. O arrasto para a mesma coluna retorna cedo, e um movimento rejeitado restaura o card na coluna de origem. Desfaturar atualiza o pedido antes de remover a taxa; falha no toggle de pagamento recarrega; campos nulos usam `—`.
+
 - [ ] **Step 4: Adicionar estilos do Kanban, modais e impressão**
 
 ```css
