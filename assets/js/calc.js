@@ -46,6 +46,26 @@ export function agruparKanban(pedidos) {
   return grupos;
 }
 
+export function totalColuna(pedidos) {
+  return arred2((pedidos || [])
+    .filter(p => !p.cancelado)
+    .reduce((s, p) => s + Number(p.total || 0), 0));
+}
+
+export function podeMover(pedido, destino) {
+  if (!ETAPAS.includes(destino)) return { ok: false, motivo: 'Etapa inválida.' };
+  if (pedido?.cancelado) return { ok: false, motivo: 'Restaure o pedido antes de movê-lo.' };
+  return { ok: true };
+}
+
+export function ordenarPorPosicao(pedidos) {
+  return [...(pedidos || [])].sort((a, b) => Number(a.posicao || 0) - Number(b.posicao || 0));
+}
+
+export function rotuloEtapa(etapa) {
+  return ROTULOS[etapa] || 'Novo';
+}
+
 export function podeAtribuirMotoboy(pedido) {
   return Boolean(
     pedido && !pedido.cancelado &&
