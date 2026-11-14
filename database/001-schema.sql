@@ -36,7 +36,7 @@ create table if not exists financeiro (
   descricao text not null,
   valor numeric(10,2) not null check (valor >= 0),
   data date not null default current_date,
-  pedido_id bigint references pedidos(id) on delete set null,
+  pedido_id uuid references pedidos(id) on delete set null,
   origem text not null default 'manual' check (origem in ('manual','pedido','taxa')),
   criado_por uuid references auth.users(id),
   criado_em timestamptz not null default now(),

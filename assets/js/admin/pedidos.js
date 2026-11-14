@@ -111,7 +111,7 @@ export async function renderPedidos(root, ctx) {
   }
 
   function abrirDetalhe(id) {
-    const pedido = pedidos.find(p => Number(p.id) === Number(id));
+    const pedido = pedidos.find(p => String(p.id) === String(id));
     if (!pedido) return;
     abrirModalDetalhe(pedido, ctx, carregar);
   }
