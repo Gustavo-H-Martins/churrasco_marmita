@@ -1501,8 +1501,9 @@ export async function renderLogs(root, ctx) {
 
 `assets/js/admin/seguranca.js`:
 ```js
-import { getPerfil, ehAdmin, registrarLog, sair } from '../auth.js';
+import { ehAdmin, registrarLog } from '../auth.js';
 import { sb } from '../db.js';
+import { esc } from '../format.js';
 import { renderLogs } from './logs.js';
 import { renderUsuarios } from './usuarios.js';
 
@@ -1545,8 +1546,8 @@ async function renderPerfil(root, ctx) {
   root.innerHTML = `
     <form id="perfilForm" class="form-grid">
       <h3>Meu perfil</h3>
-      <label>Nome<input id="perfilNome" value="${ctx.perfil?.nome || ''}" /></label>
-      <label>E-mail<input value="${ctx.perfil?.email || user?.email || ''}" disabled /></label>
+      <label>Nome<input id="perfilNome" value="${esc(ctx.perfil?.nome || '')}" /></label>
+      <label>E-mail<input value="${esc(ctx.perfil?.email || user?.email || '')}" disabled /></label>
       <label>Nova senha<input id="perfilSenha" type="password" autocomplete="new-password" placeholder="Deixe em branco para manter" /></label>
       <div class="acoes">
         <button type="submit" class="btn">Salvar</button>
@@ -1560,7 +1561,15 @@ async function renderPerfil(root, ctx) {
     try {
       const nome = root.querySelector('#perfilNome').value.trim();
       const senha = root.querySelector('#perfilSenha').value;
-      if (nome) await sb.rpc('atualizar_meu_nome', { novo_nome: nome });
+      if (!nome && !senha) {
+        msg.textContent = 'Nada para salvar.';
+        msg.className = 'msg';
+        return;
+      }
+      if (nome) {
+        const { error } = await sb.rpc('atualizar_meu_nome', { novo_nome: nome });
+        if (error) throw new Error(error.message);
+      }
       if (senha) {
         const { error } = await sb.auth.updateUser({ password: senha });
         if (error) throw new Error(error.message);
