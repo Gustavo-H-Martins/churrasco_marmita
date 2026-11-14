@@ -12,9 +12,8 @@ export async function renderPedidos(root, ctx) {
   const area = root.querySelector('#bairrosArea');
   root.querySelector('#toggleBairros').addEventListener('click', async () => {
     area.hidden = !area.hidden;
-    if (!area.hidden && !area.dataset.carregado) {
+    if (!area.hidden) {
       await renderBairros(area, ctx);
-      area.dataset.carregado = '1';
     }
   });
 }

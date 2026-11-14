@@ -4,39 +4,56 @@ import { fmtBRL, esc } from '../format.js';
 import { registrarLog } from '../auth.js';
 
 export async function renderBairros(container, ctx) {
-  let bairros = await listarBairros();
-
   container.innerHTML = `
     <section class="painel-bairros">
       <div class="painel-topo">
         <h3>Bairros e taxas</h3>
         <button type="button" id="novoBairroBtn" class="btn">+ Novo bairro</button>
       </div>
+      <div id="bairroMsg" class="msg"></div>
       <div id="bairroFormArea"></div>
       <div id="bairroLista"></div>
     </section>`;
 
   const lista = container.querySelector('#bairroLista');
   const formArea = container.querySelector('#bairroFormArea');
+  const msg = container.querySelector('#bairroMsg');
+
+  function aviso(texto, tipo = 'erro') {
+    msg.className = tipo ? `msg ${tipo}` : 'msg';
+    msg.textContent = texto;
+  }
+
+  let bairros;
+  try {
+    bairros = await listarBairros();
+  } catch (err) {
+    aviso(`Não foi possível carregar os bairros: ${err.message || err}`);
+    return;
+  }
 
   function desenharLista() {
-    lista.innerHTML = `
-      <div class="tabela-wrap">
-        <table>
-          <thead><tr><th>Ordem</th><th>Bairro</th><th>Grupo</th><th>Taxa</th><th>Ativo</th><th>Ações</th></tr></thead>
-          <tbody>
-            ${bairros.map(b => `
+    const linhas = bairros.length
+      ? bairros.map(b => `
               <tr>
-                <td>${b.ordem}</td>
+                <td>${esc(String(b.ordem ?? ''))}</td>
                 <td><strong>${esc(b.nome)}</strong></td>
                 <td>${esc(b.grupo)}</td>
                 <td>${fmtBRL(b.taxa)}</td>
                 <td>${b.ativo ? 'Sim' : 'Não'}</td>
                 <td class="acoes">
-                  <button type="button" class="btn-mini" data-edit="${b.id}">Editar</button>
-                  <button type="button" class="btn-mini perigo" data-del="${b.id}">Excluir</button>
+                  <button type="button" class="btn-mini" data-edit="${esc(String(b.id ?? ''))}">Editar</button>
+                  <button type="button" class="btn-mini perigo" data-del="${esc(String(b.id ?? ''))}">Excluir</button>
                 </td>
-              </tr>`).join('')}
+              </tr>`).join('')
+      : '<tr><td colspan="6">Nenhum bairro cadastrado.</td></tr>';
+
+    lista.innerHTML = `
+      <div class="tabela-wrap">
+        <table>
+          <thead><tr><th>Ordem</th><th>Bairro</th><th>Grupo</th><th>Taxa</th><th>Ativo</th><th>Ações</th></tr></thead>
+          <tbody>
+            ${linhas}
           </tbody>
         </table>
       </div>`;
@@ -54,14 +71,14 @@ export async function renderBairros(container, ctx) {
       <form id="bairroForm" class="form-grid painel-form">
         <h4>${bairro.id ? 'Editar' : 'Novo'} bairro</h4>
         <label>Nome<input id="bNome" value="${esc(bairro.nome || '')}" required /></label>
-        <label>Taxa (R$)<input id="bTaxa" type="number" min="0" step="0.01" value="${bairro.taxa ?? 0}" required /></label>
+        <label>Taxa (R$)<input id="bTaxa" type="number" min="0" step="0.01" value="${esc(String(bairro.taxa ?? 0))}" required /></label>
         <label>Grupo
           <select id="bGrupo">
             <option value="Bairro" ${bairro.grupo === 'Bairro' ? 'selected' : ''}>Bairro</option>
             <option value="Condomínio" ${bairro.grupo === 'Condomínio' ? 'selected' : ''}>Condomínio</option>
           </select>
         </label>
-        <label>Ordem<input id="bOrdem" type="number" step="1" value="${bairro.ordem ?? 0}" /></label>
+        <label>Ordem<input id="bOrdem" type="number" step="1" value="${esc(String(bairro.ordem ?? 0))}" /></label>
         <label class="linha-check"><input id="bAtivo" type="checkbox" ${bairro.ativo !== false ? 'checked' : ''} /> Ativo no cardápio</label>
         <div id="bErros" class="erro"></div>
         <div class="acoes">
@@ -86,27 +103,61 @@ export async function renderBairros(container, ctx) {
         formArea.querySelector('#bErros').textContent = erros.join(' ');
         return;
       }
-      await salvarBairro(dados);
-      await registrarLog(dados.id ? 'editar_bairro' : 'criar_bairro', 'bairros', dados.id || null, dados);
-      bairros = await listarBairros();
+      try {
+        await salvarBairro(dados);
+      } catch (err) {
+        formArea.querySelector('#bErros').textContent = `Erro ao salvar: ${err.message || err}`;
+        return;
+      }
       formArea.innerHTML = '';
-      desenharLista();
+      try {
+        await registrarLog(dados.id ? 'editar_bairro' : 'criar_bairro', 'bairros', dados.id || null, dados);
+        aviso('');
+      } catch (err) {
+        aviso(`Salvo, mas o log falhou: ${err.message || err}`);
+      }
+      try {
+        bairros = await listarBairros();
+        desenharLista();
+      } catch (err) {
+        aviso(`Salvo, mas não foi possível recarregar a lista: ${err.message || err}`);
+      }
     });
   }
 
   async function remover(b) {
     if (!b) return;
     const desde = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-    const recentes = await contarPedidosBairro(b.nome, desde);
+    let recentes;
+    try {
+      recentes = await contarPedidosBairro(b.nome, desde);
+    } catch (err) {
+      aviso(`Não foi possível verificar os pedidos do bairro: ${err.message || err}`);
+      return;
+    }
     if (recentes > 0) {
       alert(`"${b.nome}" aparece em ${recentes} pedido(s) nos últimos 90 dias. Desative o bairro em vez de excluir.`);
       return;
     }
     if (!confirm(`Excluir o bairro "${b.nome}"?`)) return;
-    await excluirBairro(b.id);
-    await registrarLog('excluir_bairro', 'bairros', b.id, { nome: b.nome });
-    bairros = await listarBairros();
-    desenharLista();
+    try {
+      await excluirBairro(b.id);
+    } catch (err) {
+      aviso(`Erro ao excluir: ${err.message || err}`);
+      return;
+    }
+    try {
+      await registrarLog('excluir_bairro', 'bairros', b.id, { nome: b.nome });
+      aviso('');
+    } catch (err) {
+      aviso(`Excluído, mas o log falhou: ${err.message || err}`);
+    }
+    try {
+      bairros = await listarBairros();
+      desenharLista();
+    } catch (err) {
+      aviso(`Excluído, mas não foi possível recarregar a lista: ${err.message || err}`);
+    }
   }
 
   container.querySelector('#novoBairroBtn').addEventListener('click', () => abrirForm());
