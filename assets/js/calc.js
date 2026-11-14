@@ -20,6 +20,13 @@ export function calcularFaturamento(bruto, recebido) {
   return { bruto: b, recebido: r, taxa, liquido: r };
 }
 
+export function calcularDesconto(subtotal, percentual) {
+  const s = arred2(subtotal);
+  const p = Math.min(Math.max(Number(percentual) || 0, 0), 100);
+  const desconto = Math.min(arred2(s * p / 100), s);
+  return { percentual: p, desconto, total: arred2(s - desconto) };
+}
+
 export function calcularFrete(bairros, nome) {
   const b = (bairros || []).find(x => x.nome === nome);
   return b ? arred2(b.taxa) : 0;

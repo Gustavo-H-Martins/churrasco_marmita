@@ -5,6 +5,7 @@ import { renderPedidos } from './pedidos.js';
 import { renderMotoboys } from './motoboys.js';
 import { renderFinanceiro } from './financeiro.js';
 import { renderCardapio } from './cardapio.js';
+import { renderCupons } from './cupons.js';
 import { renderSeguranca } from './seguranca.js';
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'motoboys', rotulo: 'Motoboys', render: renderMotoboys, acesso: ehEquipe },
   { id: 'financeiro', rotulo: 'Financeiro', render: renderFinanceiro, acesso: ehAdmin },
   { id: 'cardapio', rotulo: 'Cardápio/Loja', render: renderCardapio, acesso: ehEquipe },
+  { id: 'cupons', rotulo: 'Cupons', render: renderCupons, acesso: ehAdmin },
   { id: 'seguranca', rotulo: 'Segurança', render: renderSeguranca, acesso: ehEquipe }
 ];
 

@@ -202,3 +202,40 @@ export async function listarLogs({ limite = 200 } = {}) {
   checar(error);
   return data || [];
 }
+
+export async function listarCupons() {
+  const { data, error } = await sb.from('cupons').select('*')
+    .order('criado_em', { ascending: false });
+  checar(error);
+  return data || [];
+}
+
+export async function salvarCupom(c) {
+  const payload = {
+    codigo: String(c.codigo || '').trim().toUpperCase(),
+    percentual: Number(c.percentual),
+    ativo: c.ativo !== false,
+    validade_inicio: c.validade_inicio || null,
+    validade_fim: c.validade_fim || null,
+    uso_maximo: c.uso_maximo ? Number(c.uso_maximo) : null
+  };
+  const q = c.id
+    ? sb.from('cupons').update(payload).eq('id', c.id)
+    : sb.from('cupons').insert(payload);
+  const { error } = await q;
+  checar(error);
+}
+
+export async function excluirCupom(id) {
+  const { error } = await sb.from('cupons').delete().eq('id', id);
+  checar(error);
+}
+
+export async function validarCupom(codigo) {
+  const { data, error } = await sb.rpc('validar_cupom', {
+    p_codigo: String(codigo || '').trim().toUpperCase()
+  });
+  checar(error);
+  const row = Array.isArray(data) ? data[0] : data;
+  return row ? { codigo: row.codigo, percentual: Number(row.percentual) } : null;
+}

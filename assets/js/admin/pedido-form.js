@@ -1,5 +1,5 @@
-import { criarPedido, atualizarPedido, sb } from '../db.js';
-import { calcularFaturamento, validarPedidoManual } from '../calc.js';
+import { criarPedido, atualizarPedido, validarCupom, sb } from '../db.js';
+import { calcularFaturamento, validarPedidoManual, calcularDesconto } from '../calc.js';
 import { fmtBRL, esc } from '../format.js';
 import { registrarLog } from '../auth.js';
 import { sincronizarEntradaPedido, sincronizarTaxaFaturamento } from '../financeiro-sync.js';
@@ -13,6 +13,14 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
         <label>Cliente *<input id="mCliente" required /></label>
         <label>Itens * (um por linha)<textarea id="mItens" rows="4" required placeholder="1x Marmita Mista&#10;2x Coca-Cola lata"></textarea></label>
         <label>Valor total (R$) *<input id="mTotal" type="number" min="0.01" step="0.01" required /></label>
+        <label>Cupom de desconto
+          <div style="display:flex;gap:8px">
+            <input id="mCupom" placeholder="Código do cupom" style="flex:1" />
+            <button type="button" id="mAplicarCupom" class="btn-ghost">Aplicar</button>
+          </div>
+        </label>
+        <div id="mCupomMsg" class="msg"></div>
+        <p class="dica">Desconto: <strong id="mDesconto">${fmtBRL(0)}</strong> · Total final: <strong id="mTotalFinal">${fmtBRL(0)}</strong></p>
         <label>Canal *<select id="mCanal">
           <option value="ifood">iFood</option>
           <option value="whatsapp">WhatsApp</option>
@@ -34,15 +42,68 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
 
   const form = root.querySelector('#manualForm');
   const erroEl = form.querySelector('#mErro');
+  const cupomMsg = form.querySelector('#mCupomMsg');
+  const totalInput = form.querySelector('#mTotal');
+  const descontoEl = form.querySelector('#mDesconto');
+  const totalFinalEl = form.querySelector('#mTotalFinal');
+  let cupomAplicado = null;
+
+  function atualizarResumo() {
+    const bruto = Number(totalInput.value) || 0;
+    const desc = cupomAplicado ? calcularDesconto(bruto, cupomAplicado.percentual).desconto : 0;
+    descontoEl.textContent = fmtBRL(desc);
+    totalFinalEl.textContent = fmtBRL(bruto - desc);
+  }
+
+  totalInput.addEventListener('input', atualizarResumo);
+  atualizarResumo();
+
   root.querySelector('#mFechar').addEventListener('click', () => { root.innerHTML = ''; });
+
+  root.querySelector('#mAplicarCupom').addEventListener('click', async () => {
+    const botao = root.querySelector('#mAplicarCupom');
+    const codigo = form.querySelector('#mCupom').value.trim();
+    cupomMsg.className = 'msg';
+    cupomMsg.textContent = '';
+
+    if (!codigo) {
+      cupomAplicado = null;
+      cupomMsg.className = 'msg erro';
+      cupomMsg.textContent = 'Informe o código do cupom.';
+      atualizarResumo();
+      return;
+    }
+
+    botao.disabled = true;
+    try {
+      const cupom = await validarCupom(codigo);
+      if (!cupom) {
+        cupomAplicado = null;
+        cupomMsg.className = 'msg erro';
+        cupomMsg.textContent = 'Cupom inválido ou expirado.';
+      } else {
+        cupomAplicado = { codigo: cupom.codigo, percentual: cupom.percentual };
+        cupomMsg.className = 'msg ok';
+        cupomMsg.textContent = `Cupom ${cupom.codigo}: ${cupom.percentual}%`;
+      }
+    } catch (err) {
+      cupomAplicado = null;
+      cupomMsg.className = 'msg erro';
+      cupomMsg.textContent = `Não foi possível validar o cupom: ${err.message || err}`;
+    } finally {
+      botao.disabled = false;
+      atualizarResumo();
+    }
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const itensTexto = form.querySelector('#mItens').value.trim();
+    const bruto = Number(form.querySelector('#mTotal').value);
     const dados = {
       cliente: form.querySelector('#mCliente').value.trim(),
       itens: itensTexto,
-      total: Number(form.querySelector('#mTotal').value),
+      total: bruto,
       canal: form.querySelector('#mCanal').value
     };
     const erros = validarPedidoManual(dados);
@@ -50,6 +111,9 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
       erroEl.textContent = erros.join(' ');
       return;
     }
+
+    const desc = cupomAplicado ? calcularDesconto(bruto, cupomAplicado.percentual).desconto : 0;
+    const totalFinal = bruto - desc;
 
     const linhas = itensTexto.split('\n').map(l => l.trim()).filter(Boolean);
     const pedido = {
@@ -60,10 +124,12 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
       pagamento: form.querySelector('#mPagamento').value.trim() || null,
       observacao: form.querySelector('#mObs').value.trim() || null,
       itens: linhas.map(l => ({ produto: l, quantidade: 1, preco_unitario: null, subtotal: null })),
-      subtotal: dados.total,
+      subtotal: bruto,
       frete: 0,
-      total: dados.total,
-      valor_bruto: dados.total,
+      total: totalFinal,
+      valor_bruto: totalFinal,
+      cupom: cupomAplicado?.codigo || null,
+      desconto: desc,
       canal: dados.canal,
       origem: 'manual',
       status_kanban: 'novo',
@@ -73,7 +139,7 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
     erroEl.textContent = '';
     try {
       const criado = await criarPedido(pedido);
-      await registrarLog('criar_pedido_manual', 'pedidos', criado.id, { cliente: criado.cliente, total: criado.total, canal: criado.canal });
+      await registrarLog('criar_pedido_manual', 'pedidos', criado.id, { cliente: criado.cliente, total: criado.total, canal: criado.canal, cupom: criado.cupom || null });
       root.innerHTML = '';
       if (onSalvo) await onSalvo();
     } catch (err) {

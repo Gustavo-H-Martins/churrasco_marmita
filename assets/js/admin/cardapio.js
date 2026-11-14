@@ -54,6 +54,7 @@ export async function renderCardapio(root, ctx) {
         <div class="acoes"><button type="submit" class="btn">Salvar configuração</button></div>
         <div id="configMsg" class="msg"></div>
       </form>
+      ${ctx.perfil?.papel === 'admin' ? '<button type="button" id="gerenciarCupons" class="btn-ghost">Gerenciar cupons</button>' : ''}
     </section>`;
 
   const lista = root.querySelector('#produtoLista');
@@ -201,6 +202,11 @@ export async function renderCardapio(root, ctx) {
   }
 
   root.querySelector('#novoProduto').addEventListener('click', () => abrirForm());
+
+  const gerenciarCupons = root.querySelector('#gerenciarCupons');
+  if (gerenciarCupons) {
+    gerenciarCupons.addEventListener('click', () => { location.hash = 'cupons'; });
+  }
 
   root.querySelector('#toggleLoja').addEventListener('click', async () => {
     const botao = root.querySelector('#toggleLoja');

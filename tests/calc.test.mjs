@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {
   calcularTaxa, calcularFrete, resumoPedidos, agruparKanban,
   podeAtribuirMotoboy, proximaEtapa, transicaoPermitida,
-  relatorioMotoboy, resumoFinanceiro, validarBairro, validarPedidoManual
+  relatorioMotoboy, resumoFinanceiro, validarBairro, validarPedidoManual,
+  calcularDesconto
 } from '../assets/js/calc.js';
 
 const pedidos = [
@@ -17,6 +18,13 @@ test('calcularTaxa devolve a diferença e nunca fica negativa', () => {
   assert.equal(calcularTaxa(100, 85), 15);
   assert.equal(calcularTaxa(100, 100), 0);
   assert.equal(calcularTaxa(100, 120), 0);
+});
+
+test('calcularDesconto aplica percentual e nunca passa do subtotal', () => {
+  assert.deepEqual(calcularDesconto(100, 10), { percentual: 10, desconto: 10, total: 90 });
+  assert.deepEqual(calcularDesconto(100, 100), { percentual: 100, desconto: 100, total: 0 });
+  assert.deepEqual(calcularDesconto(100, 150), { percentual: 100, desconto: 100, total: 0 });
+  assert.deepEqual(calcularDesconto(100, 0), { percentual: 0, desconto: 0, total: 100 });
 });
 
 test('calcularFrete encontra o bairro e devolve 0 quando não existe', () => {
