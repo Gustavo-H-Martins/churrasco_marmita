@@ -1,7 +1,7 @@
 -- Churrasco na Marmita — tabelas base para um projeto NOVO (staging/local).
 -- NÃO rode este arquivo em produção depois do cutover: ele recria políticas
 -- permissivas que o 005-rls-cutover.sql remove.
--- Ordem em um banco vazio: 000 -> 001 -> 002 -> 003 -> 004 (e 005 para simular o cutover).
+-- Ordem em um banco vazio: 000 -> 001 -> 002 -> 003 -> 004 -> 006 (e 005 para simular o cutover).
 
 create table if not exists status (
   id bigint primary key default 1,

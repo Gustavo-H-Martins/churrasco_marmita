@@ -46,7 +46,9 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
   const totalInput = form.querySelector('#mTotal');
   const descontoEl = form.querySelector('#mDesconto');
   const totalFinalEl = form.querySelector('#mTotalFinal');
+  const submitBtn = form.querySelector('button[type="submit"]');
   let cupomAplicado = null;
+  let enviando = false;
 
   function atualizarResumo() {
     const bruto = Number(totalInput.value) || 0;
@@ -98,6 +100,7 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (enviando) return;
     const itensTexto = form.querySelector('#mItens').value.trim();
     const bruto = Number(form.querySelector('#mTotal').value);
     const dados = {
@@ -137,13 +140,35 @@ export function abrirPedidoManual({ ctx, onSalvo }) {
     };
 
     erroEl.textContent = '';
+    enviando = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Salvando…';
+
+    let criado;
     try {
-      const criado = await criarPedido(pedido);
-      await registrarLog('criar_pedido_manual', 'pedidos', criado.id, { cliente: criado.cliente, total: criado.total, canal: criado.canal, cupom: criado.cupom || null });
-      root.innerHTML = '';
-      if (onSalvo) await onSalvo();
+      criado = await criarPedido(pedido);
     } catch (err) {
       erroEl.textContent = 'Falha ao salvar pedido: ' + (err.message || err);
+      enviando = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Salvar pedido';
+      return;
+    }
+
+    try {
+      await registrarLog('criar_pedido_manual', 'pedidos', criado.id, { cliente: criado.cliente, total: criado.total, canal: criado.canal, cupom: criado.cupom || null });
+    } catch (err) {
+      // O pedido já foi gravado: falha de log não pode parecer falha de gravação.
+      console.warn('Pedido salvo, mas o log falhou:', err);
+    }
+
+    root.innerHTML = '';
+    if (onSalvo) {
+      try {
+        await onSalvo();
+      } catch (err) {
+        console.warn('Pedido salvo, mas não foi possível atualizar a lista:', err);
+      }
     }
   });
 }
