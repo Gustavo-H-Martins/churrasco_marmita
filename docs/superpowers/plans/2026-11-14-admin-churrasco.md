@@ -483,7 +483,9 @@ alter table status enable row level security;
 
 - [ ] **Step 6: Aplicar no staging**
 
-No SQL Editor do projeto de staging, execute na ordem: `001`, `002`, `003`, `004`.
+No SQL Editor do projeto de staging, execute na ordem: `000`, `001`, `002`, `003`, `004`.
+
+`000-base.sql` é **somente para staging/local**: cria as tabelas base (`status`, `pedidos`, `produtos`, `config`) e políticas anônimas permissivas em um projeto vazio. Não rode `000` em produção depois do cutover.
 
 - [ ] **Step 7: Verificar o staging**
 
