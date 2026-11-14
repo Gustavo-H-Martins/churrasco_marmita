@@ -1775,6 +1775,8 @@ export async function renderBairros(container, ctx) {
 }
 ```
 
+**Nota de robustez (R28):** envolva `listarBairros`, `salvarBairro` e `excluirBairro` em try/catch e, quando a gravação der certo, trate `registrarLog` em um try/catch separado. Uma falha de auditoria não pode fazer uma gravação bem-sucedida parecer falha: recarregue a lista e limpe o formulário mesmo assim. Inclua estado vazio (`Nenhum bairro cadastrado.`) e recarregue o painel cada vez que ele for aberto.
+
 - [ ] **Step 2: Integrar o painel na aba Pedidos**
 
 Em `assets/js/admin/pedidos.js`, importe e renderize um botão que abre/fecha o painel:
