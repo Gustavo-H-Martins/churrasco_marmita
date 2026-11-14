@@ -1,6 +1,9 @@
 -- ATENÇÃO: remove colunas e tabelas novas. Exporte financeiro e logs antes.
 -- Use apenas se precisar voltar a produção ao estado anterior ao app administrativo.
 
+-- Remove o trigger antes das funções/tabelas que ele referencia.
+drop trigger if exists on_auth_user_created on auth.users;
+
 alter table pedidos
   drop column if exists status_kanban,
   drop column if exists status_anterior,
@@ -35,6 +38,11 @@ begin
     execute format('drop policy if exists %I on public.%I', r.policyname, r.tablename);
   end loop;
 end $$;
+
+drop function if exists public.criar_perfil_para_novo_usuario();
+drop function if exists public.atualizar_meu_nome(text);
+drop function if exists public.eh_admin();
+drop function if exists public.eh_equipe();
 
 create policy anon_all_pedidos on pedidos for all using (true) with check (true);
 create policy anon_all_produtos on produtos for all using (true) with check (true);
