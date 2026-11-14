@@ -1,3 +1,20 @@
+import { renderBairros } from './bairros.js';
+
 export async function renderPedidos(root, ctx) {
-  root.innerHTML = `<h2>Pedidos</h2><p>Em construção.</p>`;
+  root.innerHTML = `
+    <div class="barra-pedidos">
+      <h2>Pedidos</h2>
+      <button type="button" id="toggleBairros" class="btn-ghost">Bairros e taxas</button>
+    </div>
+    <div id="bairrosArea" hidden></div>
+    <div id="kanbanArea"><p class="carregando">Carregando pedidos…</p></div>`;
+
+  const area = root.querySelector('#bairrosArea');
+  root.querySelector('#toggleBairros').addEventListener('click', async () => {
+    area.hidden = !area.hidden;
+    if (!area.hidden && !area.dataset.carregado) {
+      await renderBairros(area, ctx);
+      area.dataset.carregado = '1';
+    }
+  });
 }
