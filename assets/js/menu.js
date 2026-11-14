@@ -5,20 +5,20 @@ import { calcularFrete } from './calc.js';
 
 // Cópia local de emergência: mesmos 37 registros de database/003-seed-bairros.sql.
 const BAIRROS_FALLBACK = [
-  ['Acácias',2,'Bairro'], ['Vila Maria',2,'Bairro'], ['Santa Helena',2,'Bairro'],
-  ['Vila Rica',3,'Bairro'], ['Jardim Imperial',3,'Bairro'], ['Por do Sol',3,'Bairro'],
-  ['Moradas',3,'Bairro'], ['Vale Verde Ville',3,'Bairro'], ['Portal do Sol',3,'Bairro'],
-  ['Jacques Vile',3,'Bairro'], ['Palmital',4,'Bairro'], ['Vale dos Sonhos',4,'Bairro'],
-  ['Vila Fagundes',4,'Bairro'], ['Sobradinho',5,'Bairro'], ['Brant',5,'Bairro'],
-  ['Campinho',5,'Bairro'], ['Centro',6,'Bairro'], ['Barraginha',6,'Bairro'],
-  ['Várzea',7,'Bairro'], ['Bela Vista',7,'Bairro'], ['Joa',8,'Bairro'],
-  ['Santos Dumont',8,'Bairro'], ['Ovídeo Guerra',8,'Bairro'], ['Ipê',9,'Bairro'],
-  ['Praia Angélica',9,'Bairro'], ['Novo Santos Dumont',9,'Bairro'], ['Recanto',9,'Bairro'],
-  ['Aeronautas',10,'Bairro'], ['Visão',10,'Bairro'], ['Lagoinha',10,'Bairro'],
-  ['Lundceia',6,'Bairro'], ['Recanto do Poeta',10,'Bairro'],
-  ['Amendoeiras',10,'Condomínio'], ['Mirante do Fidalgo',5,'Condomínio'],
-  ['Bouganvile',10,'Condomínio'], ['Maripousas',5,'Condomínio'],
-  ['Trilhas do Sol',5,'Condomínio']
+  ['Acácias',3,'Bairro'], ['Vila Maria',3,'Bairro'], ['Santa Helena',3,'Bairro'],
+  ['Vila Rica',4,'Bairro'], ['Jardim Imperial',4,'Bairro'], ['Por do Sol',4,'Bairro'],
+  ['Moradas',4,'Bairro'], ['Vale Verde Ville',4,'Bairro'], ['Portal do Sol',4,'Bairro'],
+  ['Jacques Vile',4,'Bairro'], ['Palmital',5,'Bairro'], ['Vale dos Sonhos',5,'Bairro'],
+  ['Vila Fagundes',5,'Bairro'], ['Sobradinho',6,'Bairro'], ['Brant',6,'Bairro'],
+  ['Campinho',6,'Bairro'], ['Centro',7,'Bairro'], ['Barraginha',7,'Bairro'],
+  ['Várzea',8,'Bairro'], ['Bela Vista',8,'Bairro'], ['Joa',9,'Bairro'],
+  ['Santos Dumont',9,'Bairro'], ['Ovídeo Guerra',9,'Bairro'], ['Ipê',10,'Bairro'],
+  ['Praia Angélica',10,'Bairro'], ['Novo Santos Dumont',10,'Bairro'], ['Recanto',10,'Bairro'],
+  ['Aeronautas',15,'Bairro'], ['Visão',15,'Bairro'], ['Lagoinha',15,'Bairro'],
+  ['Lundceia',7,'Bairro'], ['Recanto do Poeta',12,'Bairro'],
+  ['Amendoeiras',15,'Condomínio'], ['Mirante do Fidalgo',8,'Condomínio'],
+  ['Bouganvile',15,'Condomínio'], ['Maripousas',8,'Condomínio'],
+  ['Trilhas do Sol',8,'Condomínio']
 ].map(([nome, taxa, grupo]) => ({ nome, taxa, grupo }));
 
 let bairros = [];
