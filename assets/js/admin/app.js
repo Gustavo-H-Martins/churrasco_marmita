@@ -115,7 +115,7 @@ window.addEventListener('hashchange', () => {
 });
 
 sb.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_OUT') { pararAba(); perfil = null; mostrarLogin(); }
+  if (event === 'SIGNED_OUT') { pararAba(); perfil = null; document.getElementById('loginSenha').value = ''; mostrarLogin(); }
 });
 
 iniciar();
