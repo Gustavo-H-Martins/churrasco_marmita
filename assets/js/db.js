@@ -37,6 +37,50 @@ export async function excluirBairro(id) {
   checar(error);
 }
 
+export async function listarProdutos() {
+  const { data, error } = await sb.from('produtos').select('*').order('ordem').order('id');
+  checar(error);
+  return data || [];
+}
+
+export async function salvarProduto(p) {
+  const payload = {
+    nome: p.nome.trim(),
+    preco: Number(p.preco || 0),
+    descricao: p.descricao || null,
+    imagem: p.imagem || null,
+    categoria: p.categoria || 'meal',
+    ativo: p.ativo !== false,
+    ordem: Number(p.ordem || 0)
+  };
+  const q = p.id
+    ? sb.from('produtos').update(payload).eq('id', p.id)
+    : sb.from('produtos').insert(payload);
+  const { error } = await q;
+  checar(error);
+}
+
+export async function excluirProduto(id) {
+  const { error } = await sb.from('produtos').delete().eq('id', id);
+  checar(error);
+}
+
+export async function carregarConfig() {
+  const { data, error } = await sb.from('config').select('*').eq('id', 1).maybeSingle();
+  checar(error);
+  return data;
+}
+
+export async function salvarConfig(patch) {
+  const { error } = await sb.from('config').update(patch).eq('id', 1);
+  checar(error);
+}
+
+export async function definirLojaAberta(aberta) {
+  const { error } = await sb.from('status').update({ isOpen: aberta }).eq('id', 1);
+  checar(error);
+}
+
 export async function listarMotoboys() {
   const { data, error } = await sb.from('motoboys').select('*').order('nome');
   checar(error);
