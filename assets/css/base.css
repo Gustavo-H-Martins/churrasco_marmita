@@ -113,6 +113,7 @@ html[data-theme="dark"] .c-gray { fill: var(--color-cat-gray-800); stroke: var(-
 :root { color-scheme: dark; }
 
 [hidden] { display: none !important; }
+html { box-sizing: border-box; }
 *, *::before, *::after { box-sizing: inherit; }
 html { color-scheme: dark; }
 html, body { margin: 0; padding: 0; background: var(--color-bg-page); }

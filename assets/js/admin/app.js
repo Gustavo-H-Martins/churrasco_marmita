@@ -1,5 +1,5 @@
 import { IS_STAGING } from '../config.js';
-import { entrar, sair, getPerfil, ehAdmin, ehEquipe } from '../auth.js';
+import { entrar, sair, getPerfil, ehAdmin, ehEquipe, registrarLog } from '../auth.js';
 import { sb } from '../db.js';
 import { renderPedidos } from './pedidos.js';
 import { renderMotoboys } from './motoboys.js';
@@ -49,7 +49,7 @@ async function iniciar() {
 
   loginView.hidden = true;
   appView.hidden = false;
-  document.getElementById('usuarioInfo').textContent = `${perfil.nome || perfil.email} · ${perfil.papel}`;
+  document.getElementById('usuarioInfo').textContent = `${perfil.nome || perfil.email || '—'} · ${perfil.papel}`;
 
   const visiveis = TABS.filter(t => t.acesso(perfil));
   tabsEl.innerHTML = visiveis.map(t =>
@@ -63,17 +63,24 @@ async function iniciar() {
   await abrirAba(visiveis.some(t => t.id === alvo) ? alvo : 'pedidos');
 }
 
+function pararAba() {
+  if (typeof limparAba === 'function') limparAba();
+  limparAba = null;
+}
+
 async function abrirAba(id) {
   const tab = TABS.find(t => t.id === id && t.acesso(perfil));
   if (!tab) return;
-  if (typeof limparAba === 'function') limparAba();
-  limparAba = null;
+  pararAba();
   tabsEl.querySelectorAll('.tab').forEach(b => b.classList.toggle('ativo', b.dataset.tab === id));
   tabRoot.innerHTML = '<p class="carregando">Carregando…</p>';
   try {
     limparAba = await tab.render(tabRoot, { perfil }) || null;
   } catch (e) {
-    tabRoot.innerHTML = `<p class="erro">Erro ao carregar: ${e.message}</p>`;
+    const p = document.createElement('p');
+    p.className = 'erro';
+    p.textContent = `Erro ao carregar: ${e.message}`;
+    tabRoot.replaceChildren(p);
   }
 }
 
@@ -86,15 +93,20 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       document.getElementById('loginSenha').value
     );
     await iniciar();
+    await registrarLog('login', 'auth', null, {
+      email: document.getElementById('loginEmail').value.trim()
+    });
   } catch (err) {
     document.getElementById('loginErro').textContent = err.message;
   }
 });
 
 document.getElementById('sairBtn').addEventListener('click', async () => {
-  if (typeof limparAba === 'function') limparAba();
+  pararAba();
+  await registrarLog('logout', 'auth', null, { email: perfil?.email });
   await sair();
   perfil = null;
+  document.getElementById('loginSenha').value = '';
   mostrarLogin();
 });
 
@@ -103,7 +115,7 @@ window.addEventListener('hashchange', () => {
 });
 
 sb.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_OUT') { perfil = null; mostrarLogin(); }
+  if (event === 'SIGNED_OUT') { pararAba(); perfil = null; mostrarLogin(); }
 });
 
 iniciar();
