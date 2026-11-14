@@ -22,15 +22,15 @@ export function montarKanban({ container, pedidos, motoboys, perfil, onMover, on
   container.querySelectorAll('.cartao').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('button,select,label')) return;
-      onAbrir(Number(el.dataset.id));
+      onAbrir(String(el.dataset.id));
     });
   });
 
   container.querySelectorAll('[data-acao]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const id = Number(btn.dataset.id);
-      const pedido = pedidos.find(p => Number(p.id) === id);
+      const id = String(btn.dataset.id);
+      const pedido = pedidos.find(p => String(p.id) === id);
       if (!pedido) return;
       if (btn.dataset.acao === 'prev') onMover(pedido, proximaEtapa(pedido.status_kanban, -1));
       if (btn.dataset.acao === 'next') onMover(pedido, proximaEtapa(pedido.status_kanban, 1));
@@ -41,7 +41,7 @@ export function montarKanban({ container, pedidos, motoboys, perfil, onMover, on
 
   container.querySelectorAll('[data-motoboy]').forEach(sel => {
     sel.addEventListener('change', () => {
-      const pedido = pedidos.find(p => Number(p.id) === Number(sel.dataset.motoboy));
+      const pedido = pedidos.find(p => String(p.id) === String(sel.dataset.motoboy));
       if (pedido) onAtribuir(pedido, sel.value ? Number(sel.value) : null);
     });
   });
@@ -54,8 +54,8 @@ export function montarKanban({ container, pedidos, motoboys, perfil, onMover, on
         ghostClass: 'cartao-fantasma',
         onEnd: async (evt) => {
           if (evt.from === evt.to) return;
-          const id = Number(evt.item.dataset.id);
-          const pedido = pedidos.find(p => Number(p.id) === id);
+          const id = String(evt.item.dataset.id);
+          const pedido = pedidos.find(p => String(p.id) === id);
           const destino = evt.to.dataset.etapa;
           if (!pedido) return;
           const regra = podeMover(pedido, destino);
