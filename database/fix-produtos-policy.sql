@@ -1,3 +1,4 @@
+-- ATENÇÃO: NÃO RODAR APÓS 005-RLS-CUTOVER — recria políticas anon de escrita.
 -- ═══════════════════════════════════════════════════════════════════
 -- Correção: garante a policy de escrita (INSERT/UPDATE/DELETE)
 -- na tabela `produtos`. Rode no Supabase > SQL Editor.

@@ -4221,9 +4221,9 @@ Depois, no SQL Editor de produção, rode `005-rls-cutover.sql`.
 1. Abra o cardápio público e faça um pedido de teste real (pode cancelar depois).
 2. Confirme que o pedido aparece no `/admin/`.
 3. Abra `/pedidos/`: deve redirecionar para `/admin/#pedidos`.
-4. Confirme que a senha antiga `bdg2026` não existe mais no código:
+4. Confirme que a senha antiga `(senha antiga removida)` não existe mais no código:
 ```bash
-rg -n "bdg2026|ADMIN_PASSWORD" --glob '!docs/**' .
+rg -n "(senha antiga removida)|ADMIN_PASSWORD" --glob '!docs/**' .
 ```
 Expected: nenhuma ocorrência.
 5. Rode o teste de RLS anônima da Task 15 contra produção.
@@ -4306,7 +4306,7 @@ Run:
 ```bash
 git status --short
 git log --oneline -10
-rg -n "bdg2026|ADMIN_PASSWORD|pwd_ifood=Churrasco" --glob '!docs/**' .
+rg -n "(senha antiga removida)|ADMIN_PASSWORD|pwd_ifood=Churrasco" --glob '!docs/**' .
 ```
 Expected: árvore limpa; nenhuma ocorrência de senha antiga ou credencial real fora de documentação histórica.
 

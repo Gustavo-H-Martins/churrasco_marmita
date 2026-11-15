@@ -68,7 +68,7 @@ td code { font-size: 12px; word-break: break-all; }
 fieldset.ciencia { border: 1px solid var(--color-border-default); border-radius: 8px; padding: 10px; display: grid; gap: 6px; }
 @media (max-width: 700px) { .kanban { grid-auto-columns: 84vw; } }
 
-/* Etiqueta térmica 100 x 150 mm — mesmo layout do /pedidos atual */
+/* Etiqueta térmica 100 x 150 mm — layout de impressão do painel /admin */
 #printArea { display: none; }
 @media print {
   body > *:not(#printArea) { display: none !important; }
