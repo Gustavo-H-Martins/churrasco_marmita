@@ -1,3 +1,4 @@
+-- ATENÇÃO: NÃO RODAR APÓS 005-RLS-CUTOVER — recria políticas anon de escrita.
 -- ═══════════════════════════════════════════════════════════════════
 -- Churrasco na Marmita — tabelas de PRODUTOS e CONFIGURAÇÃO
 -- Execute este script no Supabase > SQL Editor (uma vez por projeto)
@@ -31,8 +32,8 @@ CREATE TABLE IF NOT EXISTS config (
 INSERT INTO config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- 3) RLS — mesmo padrão simples já usado nas tabelas status/pedidos:
---    anon pode ler; o painel admin (protegido por senha na página) grava.
---    (Pode ser endurecido depois com autenticação.)
+--    anon pode ler; o painel /admin autenticado (equipe) grava.
+--    (Endurecido pelas políticas de 005-rls-cutover.sql.)
 ALTER TABLE produtos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE config ENABLE ROW LEVEL SECURITY;
 

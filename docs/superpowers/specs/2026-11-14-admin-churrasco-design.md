@@ -13,7 +13,7 @@ Hoje o projeto é um site estático publicado no GitHub Pages com:
 - `index.html`: cardápio público que monta o pedido e finaliza no WhatsApp;
 - `pedidos/index.html`: lista de pedidos com filtros, impressão de etiquetas, marcação de pagamento e cancelamento com justificativa + ciência de três pessoas;
 - Supabase como backend: tabelas `pedidos`, `produtos`, `config` e `status`;
-- senha administrativa fixa no JavaScript (`bdg2026`) e políticas de banco abertas para a chave publicável;
+- senha administrativa fixa no JavaScript (`(senha antiga removida)`) e políticas de banco abertas para a chave publicável;
 - bairros e taxas de entrega fixos no código do cardápio.
 
 O negócio cresceu e precisa de operação diária: quadro de pedidos, motoboys, controle financeiro, cadastro de bairros e lançamento manual de pedidos de iFood com faturamento posterior.
