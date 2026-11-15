@@ -223,11 +223,8 @@ export async function renderUsuarios(root, ctx) {
         }
 
         formArea.innerHTML = '';
-        try {
-          await registrarLog('criar_usuario', 'perfis', data?.id ?? null, { email: body.email, papel: body.papel });
-        } catch (err) {
-          aviso(`Usuário criado, mas o log falhou: ${err.message || err}`);
-        }
+        msg.className = 'msg ok';
+        msg.textContent = 'Usuário criado.';
         await recarregar();
       } catch (err) {
         erroEl.textContent = await mensagemDeErro(err, null);

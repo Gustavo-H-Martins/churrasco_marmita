@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
 
   const authHeader = req.headers.get('Authorization') ?? '';
   const url = Deno.env.get('SUPABASE_URL')!;
-  const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const anon = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
+  const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SECRET_KEY')!;
 
   const chamador = createClient(url, anon, {
     global: { headers: { Authorization: authHeader } }
@@ -34,7 +34,14 @@ Deno.serve(async (req) => {
     return json({ error: 'Sem permissão para criar usuários.' }, 403);
   }
 
-  const { email, senha, nome, papel } = await req.json();
+  let corpo;
+  try {
+    corpo = await req.json();
+  } catch {
+    return json({ error: 'Corpo inválido.' }, 400);
+  }
+
+  const { email, senha, nome, papel } = corpo;
   if (!email || !senha) return json({ error: 'Informe e-mail e senha.' }, 400);
   if (!['admin', 'operador'].includes(papel)) return json({ error: 'Papel inválido.' }, 400);
   if (String(senha).length < 8) return json({ error: 'A senha deve ter ao menos 8 caracteres.' }, 400);
@@ -56,7 +63,7 @@ Deno.serve(async (req) => {
   });
   if (erroPerfil) return json({ error: erroPerfil.message }, 500);
 
-  await admin.from('logs').insert({
+  const { error: logError } = await admin.from('logs').insert({
     user_id: user.id,
     user_email: user.email,
     acao: 'criar_usuario',
@@ -64,6 +71,7 @@ Deno.serve(async (req) => {
     entidade_id: data.user.id,
     detalhe: { email, papel }
   });
+  if (logError) console.error('log criar_usuario:', logError.message);
 
   return json({ id: data.user.id });
 });
