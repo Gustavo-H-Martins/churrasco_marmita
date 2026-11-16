@@ -38,6 +38,26 @@ export function fmtDataHora(iso) {
   return `${fmtData(iso)} ${horaFmt.format(new Date(iso))}`;
 }
 
+// Datas "só dia" (YYYY-MM-DD) não devem passar pelo fuso: new Date('2026-11-21')
+// vira meia-noite UTC e, em São Paulo, apareceria como 20/11.
+export function fmtDataDia(iso) {
+  if (!iso) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso));
+  if (!m) return fmtData(iso);
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+// Próximo sábado no fuso local. Se hoje já é sábado, devolve o sábado seguinte.
+export function proximoSabadoISO(base = new Date()) {
+  const d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  const diff = (6 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dia}`;
+}
+
 export function dataBR(iso) {
   const partes = new Intl.DateTimeFormat('en-CA', {
     timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'

@@ -56,6 +56,7 @@ td code { font-size: 12px; word-break: break-all; }
 .tag-manual { background: rgba(139,92,246,.15); color: var(--color-cat-purple-200, #B59AF8); }
 .tag-faturado { background: rgba(16,185,129,.15); color: var(--color-success); }
 .tag-cancelado { background: rgba(239,68,68,.15); color: var(--color-error); }
+.tag-agendado { background: rgba(245,158,11,.15); color: var(--color-warning); }
 .cartao-motoboy { display: grid; gap: 4px; font-size: 12px; }
 .cartao-motoboy select { padding: 6px; border: 1px solid var(--color-border-default); border-radius: 6px; background: var(--color-bg-page); color: var(--color-text-primary); }
 .cartao-acoes { display: flex; gap: 4px; flex-wrap: wrap; }

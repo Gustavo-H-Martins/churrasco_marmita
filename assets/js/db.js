@@ -76,8 +76,9 @@ export async function salvarConfig(patch) {
   checar(error);
 }
 
-export async function definirLojaAberta(aberta) {
-  const { error } = await sb.from('status').update({ isOpen: aberta }).eq('id', 1);
+export async function definirLojaAberta(aberta, proximaAbertura = null) {
+  const patch = { isOpen: aberta, proxima_abertura: aberta ? null : proximaAbertura };
+  const { error } = await sb.from('status').update(patch).eq('id', 1);
   checar(error);
 }
 

@@ -1,6 +1,6 @@
 import { SUPABASE, LOJA_FALLBACK } from './config.js';
 import { listarBairros } from './db.js';
-import { fmtBRL, esc } from './format.js';
+import { fmtBRL, esc, fmtDataDia } from './format.js';
 import { calcularFrete } from './calc.js';
 
 // Cópia local de emergência: mesmos 37 registros de database/003-seed-bairros.sql.
@@ -52,6 +52,7 @@ function rebuildCart(){
 rebuildCart();
 
 let isOpen = true;
+let proximaAbertura = null;
 let deliveryMode = 'entrega';
 let appliedCoupon = null;
 
@@ -85,13 +86,14 @@ function clearStatus(){
 async function loadRemoteStatus(){
   if(SUPABASE.url && SUPABASE.key){
     try {
-      var resp = await fetch(SUPABASE.url + '/rest/v1/status?id=eq.1&select=isOpen', {
+      var resp = await fetch(SUPABASE.url + '/rest/v1/status?id=eq.1&select=*', {
         headers: { 'apikey': SUPABASE.key, 'Authorization': 'Bearer ' + SUPABASE.key }
       });
       if(resp.ok){
         var data = await resp.json();
         if(data && data.length > 0 && typeof data[0].isOpen === 'boolean'){
           isOpen = data[0].isOpen;
+          proximaAbertura = data[0].proxima_abertura || null;
           localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
           return true;
         }
@@ -105,6 +107,7 @@ async function loadRemoteStatus(){
       var data = await resp.json();
       if(typeof data.isOpen === 'boolean'){
         isOpen = data.isOpen;
+        proximaAbertura = data.proxima_abertura || null;
         localStorage.setItem('churrasco_open', isOpen ? 'true' : 'false');
         return true;
       }
@@ -116,17 +119,24 @@ async function loadRemoteStatus(){
 // Salva um pedido na tabela `pedidos` do Supabase
 async function saveOrder(order){
   if(!SUPABASE.url || !SUPABASE.key) return false;
+  const enviar = (dados) => fetch(SUPABASE.url + '/rest/v1/pedidos', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE.key,
+      'Authorization': 'Bearer ' + SUPABASE.key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(dados)
+  });
   try {
-    var resp = await fetch(SUPABASE.url + '/rest/v1/pedidos', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE.key,
-        'Authorization': 'Bearer ' + SUPABASE.key,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(order)
-    });
+    var resp = await enviar(order);
+    if(!resp.ok && order.agendado_para){
+      // Coluna de agendamento ainda não migrada: salva o pedido sem ela
+      // em vez de perder o registro.
+      const { agendado_para, ...semAgenda } = order;
+      resp = await enviar(semAgenda);
+    }
     return resp.ok;
   } catch(e){
     console.error('Falha ao salvar pedido no Supabase:', e);
@@ -149,15 +159,13 @@ function preencherBairros(){
 }
 
 function updateQty(id, delta){
-  if(!isOpen) return;
   cart[id] = Math.max(0, cart[id] + delta);
   render();
 }
 
 function renderProducts(){
-  const disabled = isOpen ? '' : 'disabled';
   productsEl.innerHTML = products.map(p => `
-    <div class="product${!isOpen ? ' dimmed' : ''}">
+    <div class="product">
       <div class="thumb ${esc(p.cls)}"><img src="${esc(p.img)}" alt="${esc(p.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div>
       <div>
         <h3>${esc(p.name)}</h3>
@@ -165,9 +173,9 @@ function renderProducts(){
         <div class="row">
           <div class="price">${esc(fmtBRL(p.price))}</div>
           <div class="qty">
-            <button aria-label="Diminuir ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1" ${disabled}>−</button>
+            <button aria-label="Diminuir ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1">−</button>
             <div class="qty-value">${cart[p.id]}</div>
-            <button aria-label="Adicionar ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1" ${disabled}>+</button>
+            <button aria-label="Adicionar ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1">+</button>
           </div>
         </div>
       </div>
@@ -257,9 +265,26 @@ async function applyCoupon(){
   }
 }
 
+function textoAgendamento(){
+  const data = proximaAbertura ? fmtDataDia(proximaAbertura) : '';
+  return data
+    ? `📅 Agende seu pedido para o próximo turno — ${data}`
+    : '📅 Agende seu pedido para o próximo turno';
+}
+
 function render(){
   const banner = document.getElementById('closedBanner');
-  if(banner) banner.classList.toggle('active', !isOpen);
+  if(banner){
+    banner.classList.toggle('active', !isOpen);
+    if(!isOpen) banner.textContent = textoAgendamento();
+  }
+  const agendaNotice = document.getElementById('agendaNotice');
+  if(agendaNotice){
+    agendaNotice.textContent = (!isOpen && proximaAbertura)
+      ? `Este pedido será agendado para ${fmtDataDia(proximaAbertura)}.`
+      : '';
+    agendaNotice.style.display = (!isOpen && proximaAbertura) ? '' : 'none';
+  }
   renderProducts();
   renderCart();
   reportHeight();
@@ -277,7 +302,6 @@ function setDeliveryMode(mode){
 let pendingOrder = null;
 
 document.getElementById('finishBtn').addEventListener('click', () => {
-  if(!isOpen) return showStatus('🛑 Fechado por enquanto. Volte mais tarde!');
   clearStatus();
   const name = document.getElementById('name').value.trim();
   const phone = document.getElementById('phone').value.trim();
@@ -347,6 +371,7 @@ function finalizeOrder(drinks){
     ? Math.min(subtotal, Math.round(subtotal * appliedCoupon.percentual) / 100)
     : 0;
   const total = subtotal + o.shipping - desconto;
+  const agendadoPara = isOpen ? null : (proximaAbertura || null);
   const itemsText = items.map(it => `- ${it.name} x${it.qty} = ${fmtBRL(it.qty * it.price)}`).join('%0A');
   const message = [
     `*Novo pedido - ${storeConfig.nome}*`,
@@ -356,6 +381,7 @@ function finalizeOrder(drinks){
     `*Bairro:* ${o.neighborhood}`,
     o.isRetirada ? '*Endereço:* Retirada no local' : (o.address ? `*Endereço:* ${o.address}` : '*Endereço:* não informado'),
     `*Pagamento:* ${o.payment}`,
+    !isOpen ? `*Agendado para:* ${agendadoPara ? fmtDataDia(agendadoPara) : 'próximo turno'}` : '',
     o.observacao ? `*Observação:* ${o.observacao}` : '',
     '',
     '*Pedido:*',
@@ -374,7 +400,7 @@ function finalizeOrder(drinks){
   }
 
   // Salva o pedido na tabela `pedidos` do Supabase (silencioso — falhas só vão ao console)
-  saveOrder({
+  const pedido = {
     cliente: o.name,
     telefone: o.phone,
     bairro: o.neighborhood,
@@ -392,7 +418,9 @@ function finalizeOrder(drinks){
     desconto: desconto,
     cupom: appliedCoupon?.codigo || null,
     total: total
-  });
+  };
+  if(agendadoPara) pedido.agendado_para = agendadoPara;
+  saveOrder(pedido);
 
   document.getElementById('drinkModal').classList.remove('active');
   pendingOrder = null;
