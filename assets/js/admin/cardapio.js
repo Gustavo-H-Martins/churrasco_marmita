@@ -36,10 +36,25 @@ export async function renderCardapio(root, ctx) {
       : 'Loja fechada.';
   }
 
+  function pedirDataProxima() {
+    const sugestao = proximaAbertura || proximoSabadoISO();
+    const entrada = prompt(
+      'Data do próximo turno (AAAA-MM-DD ou DD/MM/AAAA):\nPedidos feitos com a loja fechada ficam agendados para esse dia.',
+      sugestao
+    );
+    if (entrada === null) return { cancelado: true };
+    const data = normalizarData(entrada);
+    if (!data) return { invalido: true };
+    return { data };
+  }
+
   root.innerHTML = `
     <div class="barra-pedidos">
       <h2>Cardápio e loja</h2>
-      <button type="button" id="toggleLoja" class="btn">${aberta ? 'Fechar loja' : 'Abrir loja'}</button>
+      <div class="acoes">
+        <button type="button" id="definirProxima" class="btn-ghost" ${aberta ? 'hidden' : ''}>Definir próximo turno</button>
+        <button type="button" id="toggleLoja" class="btn">${aberta ? 'Fechar loja' : 'Abrir loja'}</button>
+      </div>
     </div>
     <p id="lojaStatus" class="dica">${textoStatusLoja()}</p>
 
@@ -224,18 +239,14 @@ export async function renderCardapio(root, ctx) {
     let data = null;
 
     if (!novo) {
-      const sugestao = proximaAbertura || proximoSabadoISO();
-      const entrada = prompt(
-        'Data do próximo turno (AAAA-MM-DD ou DD/MM/AAAA):\nPedidos feitos com a loja fechada ficam agendados para esse dia.',
-        sugestao
-      );
-      if (entrada === null) return;
-      data = normalizarData(entrada);
-      if (!data) {
+      const escolha = pedirDataProxima();
+      if (escolha.cancelado) return;
+      if (escolha.invalido) {
         lojaStatus.className = 'msg erro';
         lojaStatus.textContent = 'Data inválida. Use AAAA-MM-DD ou DD/MM/AAAA.';
         return;
       }
+      data = escolha.data;
     }
 
     botao.disabled = true;
@@ -250,6 +261,8 @@ export async function renderCardapio(root, ctx) {
     aberta = novo;
     proximaAbertura = novo ? null : data;
     botao.textContent = aberta ? 'Fechar loja' : 'Abrir loja';
+    const definirBtn = root.querySelector('#definirProxima');
+    if(definirBtn) definirBtn.hidden = aberta;
     lojaStatus.className = 'dica';
     lojaStatus.textContent = textoStatusLoja();
     try {
@@ -260,6 +273,38 @@ export async function renderCardapio(root, ctx) {
     }
     botao.disabled = false;
   });
+
+  const definirProximaBtn = root.querySelector('#definirProxima');
+  if(definirProximaBtn){
+    definirProximaBtn.addEventListener('click', async () => {
+      const escolha = pedirDataProxima();
+      if (escolha.cancelado) return;
+      if (escolha.invalido) {
+        lojaStatus.className = 'msg erro';
+        lojaStatus.textContent = 'Data inválida. Use AAAA-MM-DD ou DD/MM/AAAA.';
+        return;
+      }
+      definirProximaBtn.disabled = true;
+      try {
+        await definirLojaAberta(false, escolha.data);
+      } catch (err) {
+        lojaStatus.className = 'msg erro';
+        lojaStatus.textContent = `Erro ao salvar a data: ${err.message || err}`;
+        definirProximaBtn.disabled = false;
+        return;
+      }
+      proximaAbertura = escolha.data;
+      lojaStatus.className = 'dica';
+      lojaStatus.textContent = textoStatusLoja();
+      try {
+        await registrarLog('alterar_loja', 'status', 1, { aberta: false, proxima_abertura: proximaAbertura });
+      } catch (err) {
+        lojaStatus.className = 'msg erro';
+        lojaStatus.textContent = `Data salva, mas o log falhou: ${err.message || err}`;
+      }
+      definirProximaBtn.disabled = false;
+    });
+  }
 
   root.querySelector('#configForm').addEventListener('submit', async (e) => {
     e.preventDefault();
