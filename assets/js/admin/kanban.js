@@ -1,5 +1,5 @@
 import { ETAPAS, ROTULOS, agruparKanban, totalColuna, podeAtribuirMotoboy, podeMover, proximaEtapa } from '../calc.js';
-import { fmtBRL, fmtDataHora, esc } from '../format.js';
+import { fmtBRL, fmtDataHora, fmtDataDia, esc } from '../format.js';
 
 export function montarKanban({ container, pedidos, motoboys, perfil, onMover, onAtribuir, onAbrir, onCancelar, onRestaurar }) {
   const grupos = agruparKanban(pedidos);
@@ -90,6 +90,7 @@ function cartao(p, etapa, motoboys, perfil) {
       <div class="cartao-tags">
         ${p.canal === 'ifood' ? '<span class="tag-ifood">iFood</span>' : ''}
         ${p.origem === 'manual' ? '<span class="tag-manual">Manual</span>' : ''}
+        ${p.agendado_para ? `<span class="tag-agendado">Agendado ${fmtDataDia(p.agendado_para)}</span>` : ''}
         ${p.faturado ? '<span class="tag-faturado">Faturado</span>' : ''}
         ${cancelado ? '<span class="tag-cancelado">Cancelado</span>' : ''}
       </div>

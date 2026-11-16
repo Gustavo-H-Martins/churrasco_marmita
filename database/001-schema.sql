@@ -75,7 +75,14 @@ alter table pedidos
   add column if not exists faturado_em timestamptz,
   add column if not exists faturado_por uuid references auth.users(id);
 
+alter table status
+  add column if not exists proxima_abertura date;
+
+alter table pedidos
+  add column if not exists agendado_para date;
+
 create index if not exists pedidos_status_idx on pedidos (status_kanban);
+create index if not exists pedidos_agendado_idx on pedidos (agendado_para);
 create index if not exists pedidos_created_idx on pedidos (created_at desc);
 create index if not exists pedidos_motoboy_idx on pedidos (motoboy_id);
 create index if not exists financeiro_data_idx on financeiro (data desc);

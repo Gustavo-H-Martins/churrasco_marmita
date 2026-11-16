@@ -2,19 +2,22 @@ import {
   listarProdutos, salvarProduto, excluirProduto,
   carregarConfig, salvarConfig, definirLojaAberta, sb
 } from '../db.js';
-import { fmtBRL, esc } from '../format.js';
+import { fmtBRL, esc, fmtDataDia, proximoSabadoISO } from '../format.js';
 import { registrarLog } from '../auth.js';
 
 export async function renderCardapio(root, ctx) {
   let produtos;
   let config;
   let aberta;
+  let proximaAbertura = null;
 
   try {
     [produtos, config] = await Promise.all([listarProdutos(), carregarConfig()]);
-    const { data: status, error } = await sb.from('status').select('isOpen').eq('id', 1).maybeSingle();
+    // select('*') evita quebrar a tela caso a coluna de agendamento ainda não exista.
+    const { data: status, error } = await sb.from('status').select('*').eq('id', 1).maybeSingle();
     if (error) throw new Error(error.message || String(error));
     aberta = status?.isOpen !== false;
+    proximaAbertura = status?.proxima_abertura || null;
   } catch (err) {
     root.innerHTML = '';
     const p = document.createElement('p');
@@ -26,12 +29,19 @@ export async function renderCardapio(root, ctx) {
 
   config = config || {};
 
+  function textoStatusLoja() {
+    if (aberta) return 'Loja aberta para pedidos.';
+    return proximaAbertura
+      ? `Loja fechada. Pedidos agendados para ${fmtDataDia(proximaAbertura)}.`
+      : 'Loja fechada.';
+  }
+
   root.innerHTML = `
     <div class="barra-pedidos">
       <h2>Cardápio e loja</h2>
       <button type="button" id="toggleLoja" class="btn">${aberta ? 'Fechar loja' : 'Abrir loja'}</button>
     </div>
-    <p id="lojaStatus" class="dica">${aberta ? 'Loja aberta para pedidos.' : 'Loja fechada.'}</p>
+    <p id="lojaStatus" class="dica">${textoStatusLoja()}</p>
 
     <section class="painel-bairros">
       <div class="painel-topo"><h3>Produtos</h3><button type="button" id="novoProduto" class="btn">+ Novo produto</button></div>
@@ -211,9 +221,26 @@ export async function renderCardapio(root, ctx) {
   root.querySelector('#toggleLoja').addEventListener('click', async () => {
     const botao = root.querySelector('#toggleLoja');
     const novo = !aberta;
+    let data = null;
+
+    if (!novo) {
+      const sugestao = proximaAbertura || proximoSabadoISO();
+      const entrada = prompt(
+        'Data do próximo turno (AAAA-MM-DD ou DD/MM/AAAA):\nPedidos feitos com a loja fechada ficam agendados para esse dia.',
+        sugestao
+      );
+      if (entrada === null) return;
+      data = normalizarData(entrada);
+      if (!data) {
+        lojaStatus.className = 'msg erro';
+        lojaStatus.textContent = 'Data inválida. Use AAAA-MM-DD ou DD/MM/AAAA.';
+        return;
+      }
+    }
+
     botao.disabled = true;
     try {
-      await definirLojaAberta(novo);
+      await definirLojaAberta(novo, data);
     } catch (err) {
       lojaStatus.className = 'msg erro';
       lojaStatus.textContent = `Erro ao alterar a loja: ${err.message || err}`;
@@ -221,11 +248,12 @@ export async function renderCardapio(root, ctx) {
       return;
     }
     aberta = novo;
+    proximaAbertura = novo ? null : data;
     botao.textContent = aberta ? 'Fechar loja' : 'Abrir loja';
     lojaStatus.className = 'dica';
-    lojaStatus.textContent = aberta ? 'Loja aberta para pedidos.' : 'Loja fechada.';
+    lojaStatus.textContent = textoStatusLoja();
     try {
-      await registrarLog('alterar_loja', 'status', 1, { aberta });
+      await registrarLog('alterar_loja', 'status', 1, { aberta, proxima_abertura: proximaAbertura });
     } catch (err) {
       lojaStatus.className = 'msg erro';
       lojaStatus.textContent = `Loja alterada, mas o log falhou: ${err.message || err}`;
@@ -280,6 +308,23 @@ export async function renderCardapio(root, ctx) {
   });
 
   desenhar();
+}
+
+// Aceita AAAA-MM-DD ou DD/MM/AAAA e devolve AAAA-MM-DD; null se a data não existir.
+function normalizarData(entrada) {
+  const s = String(entrada || '').trim();
+  let y, m, d;
+  let mm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (mm) {
+    [, y, m, d] = mm;
+  } else {
+    mm = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+    if (!mm) return null;
+    [, d, m, y] = mm;
+  }
+  const dt = new Date(Number(y), Number(m) - 1, Number(d));
+  if (dt.getFullYear() !== Number(y) || dt.getMonth() !== Number(m) - 1 || dt.getDate() !== Number(d)) return null;
+  return `${y}-${m}-${d}`;
 }
 
 function readFileAsDataURL(file) {
