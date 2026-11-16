@@ -164,6 +164,13 @@ export function validarBairro(b) {
   const erros = [];
   if (!String(b?.nome || '').trim()) erros.push('Informe o nome do bairro.');
   if (Number(b?.taxa) < 0) erros.push('A taxa não pode ser negativa.');
+  const tempo = b?.tempo_medio_min;
+  if (tempo != null && tempo !== '') {
+    const n = Number(tempo);
+    if (!Number.isFinite(n) || n < 0 || n > 240) {
+      erros.push('O tempo médio deve ficar entre 0 e 240 minutos.');
+    }
+  }
   return erros;
 }
 

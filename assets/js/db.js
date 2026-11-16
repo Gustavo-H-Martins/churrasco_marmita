@@ -23,12 +23,20 @@ export async function salvarBairro(bairro) {
     taxa: Number(bairro.taxa || 0),
     grupo: bairro.grupo || 'Bairro',
     ativo: bairro.ativo !== false,
-    ordem: Number(bairro.ordem || 0)
+    ordem: Number(bairro.ordem || 0),
+    tempo_medio_min: (bairro.tempo_medio_min == null || bairro.tempo_medio_min === '')
+      ? null
+      : Number(bairro.tempo_medio_min)
   };
-  const q = bairro.id
-    ? sb.from('bairros').update(payload).eq('id', bairro.id)
-    : sb.from('bairros').insert(payload);
-  const { error } = await q;
+  const q = (dados) => bairro.id
+    ? sb.from('bairros').update(dados).eq('id', bairro.id)
+    : sb.from('bairros').insert(dados);
+  let { error } = await q(payload);
+  // Migration 009 ainda não aplicada: salva o bairro sem o tempo médio.
+  if (error && (error.code === 'PGRST204' || /tempo_medio_min/i.test(error.message || ''))) {
+    const { tempo_medio_min, ...semTempo } = payload;
+    ({ error } = await q(semTempo));
+  }
   checar(error);
 }
 

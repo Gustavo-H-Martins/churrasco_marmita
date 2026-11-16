@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fmtBRL, parseBRL, fmtData, fmtDataHora, fmtDataDia, proximoSabadoISO, esc } from '../assets/js/format.js';
+import { fmtBRL, parseBRL, fmtData, fmtDataHora, fmtDataDia, proximoSabadoISO, linkMapa, esc } from '../assets/js/format.js';
 
 const semNbsp = (s) => s.replace(/ /g, ' ');
 
@@ -36,6 +36,16 @@ test('proximoSabadoISO devolve o próximo sábado, inclusive a partir de sábado
   assert.equal(proximoSabadoISO(new Date(2026, 10, 15)), '2026-11-21'); // domingo
   assert.equal(proximoSabadoISO(new Date(2026, 10, 20)), '2026-11-21'); // sexta
   assert.equal(proximoSabadoISO(new Date(2026, 10, 21)), '2026-11-28'); // sábado
+});
+
+test('linkMapa monta uma busca do Google Maps com endereço e bairro', () => {
+  const url = linkMapa('Rua das Flores, 10', 'Centro');
+  assert.ok(url.startsWith('https://www.google.com/maps/search/?api=1&query='));
+  assert.ok(url.includes('Rua%20das%20Flores'));
+  assert.ok(url.includes('Centro'));
+  assert.ok(url.includes('Lagoa%20Santa'));
+  assert.equal(linkMapa('Rua X', 'Retirada no local'), null);
+  assert.equal(linkMapa('', ''), null);
 });
 
 test('esc escapa HTML', () => {

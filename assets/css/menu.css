@@ -239,6 +239,11 @@ textarea { min-height: 76px; resize: vertical; }
 }
 .toggle-btn.active { background: var(--menu-ink); color: var(--menu-bg); border-color: var(--menu-ink); }
 .campo-erro { margin: 6px 0 0; font-size: 12.5px; font-weight: 600; color: var(--menu-danger); }
+.tempo-estimado {
+  margin: 2px 0 8px; padding: 9px 12px; border-radius: 10px;
+  background: var(--menu-green-bg); color: var(--menu-green);
+  font-size: 12.5px; font-weight: 700; line-height: 1.4;
+}
 .status { display: none; padding: 11px 13px; border-radius: 11px; font-size: 13.5px; font-weight: 600; }
 .status.error { display: block; background: var(--menu-danger-bg); color: var(--menu-danger); border: 1px solid rgba(180, 35, 24, .25); }
 .status.ok { display: block; background: var(--menu-green-bg); color: var(--menu-green); border: 1px solid rgba(37, 107, 67, .25); }

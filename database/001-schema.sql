@@ -8,6 +8,7 @@ create table if not exists bairros (
   grupo text not null default 'Bairro' check (grupo in ('Bairro','Condomínio')),
   ativo boolean not null default true,
   ordem int not null default 0,
+  tempo_medio_min integer check (tempo_medio_min is null or tempo_medio_min between 0 and 240),
   criado_em timestamptz not null default now()
 );
 
