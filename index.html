@@ -1,9 +1,23 @@
 <!DOCTYPE html>
-<html data-theme="dark">
+<html data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
+<script>
+(function(){
+  try {
+    var salvo = localStorage.getItem('churrasco_theme');
+    var tema = (salvo === 'dark' || salvo === 'light') ? salvo : 'light';
+    var param = new URLSearchParams(location.search).get('tema');
+    if (param === 'dark' || param === 'light') tema = param;
+    document.documentElement.dataset.theme = tema;
+  } catch (e) {}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/menu.css" />
 <script>
@@ -152,134 +166,170 @@ window.addEventListener('message', function(ev) {
 <body>
 
 <div class="menu-app">
-  <div class="welcome-banner">Bem vindo ao Churrasco na Marmita Lagoa Santa - MG</div>
-  <div class="hero">
-    <div class="brand">
-      <div class="logo"><img src="images/logo.png" alt="Churrasco na Marmita" style="width:100%;height:100%;object-fit:cover;border-radius:14px;" /></div>
-      <div>
-        <h1>Churrasco na Marmita</h1>
-        <p>Cardápio digital com pedido rápido no WhatsApp.</p>
+  <header class="topo">
+    <a class="marca" href="./" aria-label="Churrasco na Marmita — início">
+      <span class="marca-logo"><img src="images/logo.png" alt="Churrasco na Marmita" /></span>
+      <span class="marca-texto">
+        <strong>Churrasco na Marmita</strong>
+        <small>Lagoa Santa · MG</small>
+      </span>
+    </a>
+    <div class="topo-acoes">
+      <span id="statusLoja" class="status-pill" data-estado="aberto">Aberto</span>
+      <button id="themeToggle" class="tema-btn" type="button" aria-label="Ativar tema escuro" aria-pressed="false">
+        <svg class="icone-sol" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg>
+        <svg class="icone-lua" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="closedBanner" class="closed-banner" role="status">📅 Agende seu pedido para o próximo turno</div>
+
+  <section class="chamada" aria-labelledby="tituloChamada">
+    <div class="chamada-texto">
+      <p class="sobretitulo">Feito na brasa, em Lagoa Santa</p>
+      <h1 id="tituloChamada">Churrasco de verdade, na sua marmita.</h1>
+      <p class="chamada-sub">Monte seu pedido, escolha o bairro e finalize no WhatsApp em poucos toques.</p>
+      <div class="chamada-selos">
+        <span>🔥 Na brasa</span>
+        <span>🛵 Entrega no bairro</span>
+        <span>💬 Pedido pelo WhatsApp</span>
       </div>
     </div>
-    <div class="chips">
-      <a class="chip" href="https://www.instagram.com/churrasco_marmita/" target="_blank" rel="noopener noreferrer">Instagram</a>
-      <a class="chip" href="https://wa.me/553193817229" target="_blank" rel="noopener noreferrer">+55 31 9381 7229</a>
-      <span class="chip">Rua das Seringueiras Nº 26, Bairro das Acácias, Lagoa Santa</span>
+    <div class="chamada-foto">
+      <img src="images/marmita_mista.jpg" alt="Marmita com churrasco misto, arroz, farofa e vinagrete" />
     </div>
-  </div>
+  </section>
 
-  <div id="closedBanner" class="closed-banner">📅 Agende seu pedido para o próximo turno</div>
-
-  <div class="layout">
-    <div class="panel">
-      <div class="section-title">
-        <h2>Monte seu pedido</h2>
-        <span>adicione quantas vezes quiser</span>
+  <div class="conteudo">
+    <main class="cardapio">
+      <div class="cardapio-topo">
+        <div>
+          <p class="sobretitulo">Cardápio</p>
+          <h2>Monte seu pedido</h2>
+        </div>
+        <span class="cardapio-dica">Toque em + para adicionar</span>
       </div>
+
+      <nav id="categorias" class="categorias" aria-label="Categorias do cardápio">
+        <button type="button" class="cat-chip ativo" data-cat="todos" aria-pressed="true">Tudo</button>
+        <button type="button" class="cat-chip" data-cat="meal" aria-pressed="false">Marmitas</button>
+        <button type="button" class="cat-chip" data-cat="drink" aria-pressed="false">Bebidas</button>
+        <button type="button" class="cat-chip" data-cat="dessert" aria-pressed="false">Sobremesas</button>
+      </nav>
+
       <div id="products" class="products"></div>
-    </div>
+    </main>
 
-    <div class="panel sticky">
-      <div class="cart">
-        <div>
-          <div class="section-title" style="padding:0 0 12px 0">
-            <h2>Seus dados</h2>
-            <span>rápido e sem login</span>
-          </div>
-          <div class="inputs">
-            <div>
-              <label class="label" for="name">Nome</label>
-              <input id="name" placeholder="Seu nome" />
-            </div>
-            <div>
-              <label class="label" for="phone">Telefone</label>
-              <input id="phone" placeholder="(31) 99999-9999" />
-            </div>
-            <div>
-              <label class="label">Tipo de entrega</label>
-              <div class="delivery-toggle">
-                <button type="button" id="deliveryBtn" class="toggle-btn active">🛵 Entrega</button>
-                <button type="button" id="pickupBtn" class="toggle-btn">🏪 Retirada</button>
-              </div>
-            </div>
-            <div id="deliveryFields">
-              <div>
-                <label class="label" for="neighborhood">Bairro</label>
-                <select id="neighborhood" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
-                  <option value="">Selecione o bairro...</option>
-                </select>
-              </div>
-              <div>
-                <label class="label" for="address">Endereço</label>
-                <textarea id="address" placeholder="Rua, número, complemento..."></textarea>
-              </div>
-            </div>
-            <div>
-              <label class="label" for="obs">Observação</label>
-              <textarea id="obs" placeholder="Ex.: sem cebola, ponto da carne, trocar refrigerante..."></textarea>
-            </div>
-            <div>
-              <label class="label" for="payment">Forma de pagamento</label>
-              <select id="payment" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small);font-family:inherit;">
-                <option value="">Selecione a forma de pagamento...</option>
-                <option value="Cartão de crédito">Cartão de crédito</option>
-                <option value="Pix">Pix</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Cartão de débito">Cartão de Débito</option>
-              </select>
-            </div>
-          </div>
+    <aside id="checkout" class="checkout" aria-labelledby="tituloCheckout">
+      <div class="checkout-topo">
+        <h2 id="tituloCheckout">Seu pedido</h2>
+        <span id="cartCount" class="checkout-contagem">0 itens</span>
+      </div>
+
+      <div id="status" class="status" role="alert" aria-live="assertive"></div>
+      <div id="cartList" class="cart-list"></div>
+
+      <div class="summary">
+        <div class="summary-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+        <div class="summary-row"><span>Frete</span><strong id="shipping">—</strong></div>
+        <div class="summary-row" id="discountRow" style="display:none"><span>Desconto</span><strong id="discount">—</strong></div>
+        <div class="summary-row total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+      </div>
+
+      <div class="cupom">
+        <label class="label" for="coupon">Cupom de desconto</label>
+        <div class="cupom-linha">
+          <input id="coupon" placeholder="Digite o código" autocomplete="off" />
+          <button type="button" id="applyCoupon" class="btn-secundario">Aplicar</button>
         </div>
+        <p id="couponMsg" class="note" aria-live="polite"></p>
+      </div>
 
-        <div>
-          <div class="section-title" style="padding:0 0 12px 0">
-            <h2>Resumo</h2>
-            <span id="cartCount">0 itens</span>
-          </div>
-          <div id="status" class="status"></div>
-          <div id="cartList" class="cart-list"></div>
-          <div class="summary">
-            <div class="summary-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
-            <div class="summary-row"><span>Frete</span><strong id="shipping">—</strong></div>
-            <div class="summary-row" id="discountRow" style="display:none"><span>Desconto</span><strong id="discount">—</strong></div>
-            <div class="summary-row total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
-          </div>
+      <div class="dados">
+        <div class="checkout-topo">
+          <h2>Seus dados</h2>
+          <span class="checkout-contagem">sem login</span>
         </div>
-
-        <div>
-          <label class="label" for="coupon">Cupom de desconto</label>
-          <div style="display:flex;gap:8px">
-            <input id="coupon" placeholder="Código do cupom" style="flex:1;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-border-default);border-radius:var(--radius-8);background:var(--color-bg-page);color:var(--color-text-primary);font-size:var(--text-small)" />
-            <button type="button" id="applyCoupon" class="toggle-btn" style="width:auto;padding:12px 16px">Aplicar</button>
+        <div class="inputs">
+          <div class="campo">
+            <label class="label" for="name">Nome</label>
+            <input id="name" placeholder="Seu nome" autocomplete="name" />
           </div>
-          <div id="couponMsg" class="note"></div>
-        </div>
-
-        <div class="cta">
-          <div id="agendaNotice" class="note" style="display:none"></div>
-          <button id="finishBtn">Confirmar pedido</button>
-          <div class="note">Confirme o pedido, escolha se quer bebida e finalize no WhatsApp — o aplicativo abre com a mensagem pronta para envio.</div>
+          <div class="campo">
+            <label class="label" for="phone">Telefone</label>
+            <input id="phone" type="tel" inputmode="tel" maxlength="15" placeholder="(31) 99999-9999" autocomplete="tel" />
+          </div>
+          <div class="campo">
+            <span class="label">Tipo de entrega</span>
+            <div class="delivery-toggle">
+              <button type="button" id="deliveryBtn" class="toggle-btn active" aria-pressed="true">Entrega</button>
+              <button type="button" id="pickupBtn" class="toggle-btn" aria-pressed="false">Retirada</button>
+            </div>
+          </div>
+          <div id="deliveryFields" class="campo">
+            <label class="label" for="neighborhood">Bairro</label>
+            <select id="neighborhood">
+              <option value="">Selecione o bairro...</option>
+            </select>
+            <label class="label" for="address">Endereço</label>
+            <textarea id="address" placeholder="Rua, número, complemento..." autocomplete="street-address"></textarea>
+          </div>
+          <div class="campo">
+            <label class="label" for="obs">Observação</label>
+            <textarea id="obs" placeholder="Ex.: sem cebola, ponto da carne, trocar refrigerante..."></textarea>
+          </div>
+          <div class="campo">
+            <label class="label" for="payment">Forma de pagamento</label>
+            <select id="payment">
+              <option value="">Selecione a forma de pagamento...</option>
+              <option value="Cartão de crédito">Cartão de crédito</option>
+              <option value="Pix">Pix</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Cartão de débito">Cartão de Débito</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="cta">
+        <div id="agendaNotice" class="aviso-agenda" style="display:none"></div>
+        <button id="finishBtn" class="btn-primario" type="button">Enviar pedido no WhatsApp</button>
+        <p class="note">Você confere tudo no WhatsApp antes de enviar.</p>
+      </div>
+    </aside>
   </div>
 
+  <footer class="rodape">
+    <div class="rodape-contato">
+      <a id="linkWhats" href="https://wa.me/553193817229" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      <a id="linkInsta" href="https://www.instagram.com/churrasco_marmita/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <span id="enderecoLoja">Rua das Seringueiras Nº 26, Bairro das Acácias, Lagoa Santa</span>
+    </div>
+    <div class="rodape-links">
+      <a href="admin/">Admin</a>
+      <a href="admin/#pedidos">Pedidos</a>
+    </div>
+  </footer>
 
-  <div class="footer-admin">
-    <a href="admin/">⚙️ Admin</a>
-    <a href="admin/#pedidos">📋 Pedidos</a>
+  <div id="barraCarrinho" class="barra-carrinho" hidden>
+    <div class="barra-info">
+      <strong id="barraTotal">R$ 0,00</strong>
+      <small id="barraItens">0 itens</small>
+    </div>
+    <button type="button" id="barraBtn" class="btn-primario">Ver pedido</button>
   </div>
 
 
   <!-- Sugestão de bebida -->
-  <div id="drinkModal" class="modal">
+  <div id="drinkModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloBebida">
     <div class="modal-content">
-      <h3>🍹 Quer adicionar uma bebida?</h3>
-      <p class="desc" style="margin:0;color:var(--color-text-secondary);font-size:var(--text-small)">Complete seu pedido com uma bebida gelada.</p>
+      <h3 id="tituloBebida">🍹 Quer adicionar uma bebida?</h3>
+      <p class="note">Complete seu pedido com uma bebida gelada.</p>
       <div id="drinkList" class="drink-list"></div>
       <div class="modal-actions">
-        <button id="drinkNoBtn" class="ghost">Não, obrigado</button>
-        <button id="drinkYesBtn" class="primary">Sim, adicionar e finalizar</button>
+        <button id="drinkNoBtn" class="ghost" type="button">Não, obrigado</button>
+        <button id="drinkYesBtn" class="primary" type="button">Sim, adicionar e finalizar</button>
       </div>
     </div>
   </div>
