@@ -58,6 +58,17 @@ export function proximoSabadoISO(base = new Date()) {
   return `${y}-${m}-${dia}`;
 }
 
+// Link universal do Google Maps para o motoboy abrir o endereço no GPS.
+export function linkMapa(endereco, bairro, cidade = 'Lagoa Santa - MG') {
+  if (/retirada/i.test(String(bairro || ''))) return null;
+  const base = [endereco, bairro]
+    .map(p => String(p || '').trim())
+    .filter(Boolean);
+  if (!base.length) return null;
+  const partes = [...base, String(cidade || '').trim()].filter(Boolean);
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partes.join(', '))}`;
+}
+
 export function dataBR(iso) {
   const partes = new Intl.DateTimeFormat('en-CA', {
     timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'

@@ -104,3 +104,10 @@ test('calcularFaturamento devolve taxa e líquido', () => {
   assert.deepEqual(calcularFaturamento(100, 100), { bruto: 100, recebido: 100, taxa: 0, liquido: 100 });
   assert.deepEqual(calcularFaturamento(100, 120), { bruto: 100, recebido: 120, taxa: 0, liquido: 120 });
 });
+
+test('validarBairro aceita tempo médio vazio e rejeita fora da faixa', () => {
+  assert.deepEqual(validarBairro({ nome: 'Centro', taxa: 7, tempo_medio_min: null }), []);
+  assert.deepEqual(validarBairro({ nome: 'Centro', taxa: 7, tempo_medio_min: 45 }), []);
+  assert.ok(validarBairro({ nome: 'Centro', taxa: 7, tempo_medio_min: 241 }).length > 0);
+  assert.ok(validarBairro({ nome: 'Centro', taxa: 7, tempo_medio_min: -1 }).length > 0);
+});

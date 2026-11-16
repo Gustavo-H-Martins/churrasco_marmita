@@ -1,4 +1,4 @@
-import { fmtBRL, fmtDataHora, esc } from '../format.js';
+import { fmtBRL, fmtDataHora, esc, linkMapa } from '../format.js';
 import { atualizarPedido } from '../db.js';
 
 export function buildLabel(pedido) {
@@ -41,18 +41,21 @@ export async function imprimirPedido(pedido) {
 }
 
 export async function copiarEndereco(pedido) {
-  const texto = [
-    `Pedido #${pedido.seqDia || pedido.id}`,
-    pedido.cliente || '—',
-    pedido.telefone || '—',
-    `${pedido.bairro || '—'}${pedido.endereco ? ' - ' + pedido.endereco : ''}`,
-    fmtBRL(pedido.total)
-  ].join(' | ');
+  const linhas = [
+    `*Pedido #${pedido.seqDia || pedido.id}*`,
+    `Cliente: ${pedido.cliente || '—'}`,
+    `Telefone: ${pedido.telefone || '—'}`,
+    `Endereço: ${pedido.bairro || '—'}${pedido.endereco ? ' - ' + pedido.endereco : ''}`,
+    `Total: ${fmtBRL(pedido.total)}`
+  ];
+  const mapa = linkMapa(pedido.endereco, pedido.bairro);
+  if (mapa) linhas.push(`🗺️ ${mapa}`);
+  const texto = linhas.join('\n');
   try {
     await navigator.clipboard.writeText(texto);
     return true;
   } catch (e) {
-    window.prompt('Copie o endereço:', texto);
+    window.prompt('Copie os dados para o motoboy:', texto);
     return false;
   }
 }

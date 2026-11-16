@@ -269,7 +269,7 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
         </label>
         <div class="acoes">
           <button type="button" id="btnImprimir" class="btn-ghost">Imprimir etiqueta</button>
-          <button type="button" id="btnCopiar" class="btn-ghost">Copiar endereço</button>
+          <button type="button" id="btnCopiar" class="btn-ghost">Copiar p/ motoboy</button>
           ${admin && pedido.faturado ? '<button type="button" id="btnDesfaturar" class="btn-ghost">Desfaturar</button>' : ''}
           ${admin && !pedido.cancelado ? '<button type="button" id="btnFaturar" class="btn">Faturar</button>' : ''}
           <button type="button" id="btnFechar" class="btn-ghost">Fechar</button>
@@ -282,7 +282,7 @@ function abrirModalDetalhe(pedido, ctx, aoAtualizar) {
   rootModal.querySelector('#btnImprimir').addEventListener('click', () => imprimirPedido(pedido));
   rootModal.querySelector('#btnCopiar').addEventListener('click', async () => {
     const ok = await copiarEndereco(pedido);
-    rootModal.querySelector('#detalheMsg').textContent = ok ? 'Endereço copiado.' : '';
+    rootModal.querySelector('#detalheMsg').textContent = ok ? 'Dados e mapa copiados.' : '';
   });
 
   rootModal.querySelector('#pagoCheck').addEventListener('change', async (e) => {

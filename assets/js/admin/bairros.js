@@ -40,18 +40,19 @@ export async function renderBairros(container, ctx) {
                 <td><strong>${esc(b.nome)}</strong></td>
                 <td>${esc(b.grupo)}</td>
                 <td>${fmtBRL(b.taxa)}</td>
+                <td>${b.tempo_medio_min ? esc(String(b.tempo_medio_min)) + ' min' : '—'}</td>
                 <td>${b.ativo ? 'Sim' : 'Não'}</td>
                 <td class="acoes">
                   <button type="button" class="btn-mini" data-edit="${esc(String(b.id ?? ''))}">Editar</button>
                   <button type="button" class="btn-mini perigo" data-del="${esc(String(b.id ?? ''))}">Excluir</button>
                 </td>
               </tr>`).join('')
-      : '<tr><td colspan="6">Nenhum bairro cadastrado.</td></tr>';
+      : '<tr><td colspan="7">Nenhum bairro cadastrado.</td></tr>';
 
     lista.innerHTML = `
       <div class="tabela-wrap">
         <table>
-          <thead><tr><th>Ordem</th><th>Bairro</th><th>Grupo</th><th>Taxa</th><th>Ativo</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Ordem</th><th>Bairro</th><th>Grupo</th><th>Taxa</th><th>Tempo</th><th>Ativo</th><th>Ações</th></tr></thead>
           <tbody>
             ${linhas}
           </tbody>
@@ -72,6 +73,7 @@ export async function renderBairros(container, ctx) {
         <h4>${bairro.id ? 'Editar' : 'Novo'} bairro</h4>
         <label>Nome<input id="bNome" value="${esc(bairro.nome || '')}" required /></label>
         <label>Taxa (R$)<input id="bTaxa" type="number" min="0" step="0.01" value="${esc(String(bairro.taxa ?? 0))}" required /></label>
+        <label>Tempo médio de preparo + entrega (min)<input id="bTempo" type="number" min="0" max="240" step="5" value="${esc(String(bairro.tempo_medio_min ?? ''))}" placeholder="ex.: 45" /></label>
         <label>Grupo
           <select id="bGrupo">
             <option value="Bairro" ${bairro.grupo === 'Bairro' ? 'selected' : ''}>Bairro</option>
@@ -96,6 +98,9 @@ export async function renderBairros(container, ctx) {
         taxa: Number(formArea.querySelector('#bTaxa').value),
         grupo: formArea.querySelector('#bGrupo').value,
         ordem: Number(formArea.querySelector('#bOrdem').value),
+        tempo_medio_min: formArea.querySelector('#bTempo').value === ''
+          ? null
+          : Number(formArea.querySelector('#bTempo').value),
         ativo: formArea.querySelector('#bAtivo').checked
       };
       const erros = validarBairro(dados);

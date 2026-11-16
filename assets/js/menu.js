@@ -411,6 +411,18 @@ function render(){
       : '';
     agendaNotice.style.display = (!isOpen && proximaAbertura) ? '' : 'none';
   }
+  const tempoEl = document.getElementById('tempoEstimado');
+  if(tempoEl){
+    const bairro = bairros.find(b => b.nome === document.getElementById('neighborhood').value);
+    const min = Number(bairro?.tempo_medio_min);
+    if(deliveryMode === 'entrega' && Number.isFinite(min) && min > 0){
+      tempoEl.hidden = false;
+      tempoEl.textContent = `Previsão de entrega: ~${min} min · tempo médio, pode variar.`;
+    } else {
+      tempoEl.hidden = true;
+      tempoEl.textContent = '';
+    }
+  }
   atualizarCategorias();
   renderProducts();
   renderCart();
