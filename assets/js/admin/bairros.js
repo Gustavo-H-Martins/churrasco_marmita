@@ -7,7 +7,7 @@ export async function renderBairros(container, ctx) {
   container.innerHTML = `
     <section class="painel-bairros">
       <div class="painel-topo">
-        <h3>Bairros e taxas</h3>
+        <h3>Bairros, taxas e tempo médio</h3>
         <button type="button" id="novoBairroBtn" class="btn">+ Novo bairro</button>
       </div>
       <div id="bairroMsg" class="msg"></div>

@@ -14,7 +14,7 @@ export async function renderPedidos(root, ctx) {
       <h2>Pedidos</h2>
       <div class="acoes">
         <button type="button" id="novoPedidoBtn" class="btn">+ Novo pedido</button>
-        <button type="button" id="toggleBairros" class="btn-ghost">Bairros e taxas</button>
+        <button type="button" id="toggleBairros" class="btn-ghost">Bairros, taxas e tempos</button>
         <span id="statusKanban" class="dica"></span>
       </div>
     </div>
