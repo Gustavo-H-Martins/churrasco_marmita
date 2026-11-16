@@ -79,6 +79,14 @@ export async function salvarConfig(patch) {
 export async function definirLojaAberta(aberta, proximaAbertura = null) {
   const patch = { isOpen: aberta, proxima_abertura: aberta ? null : proximaAbertura };
   const { error } = await sb.from('status').update(patch).eq('id', 1);
+  if (!error) return;
+  // Migration 008 ainda não aplicada: mantém abrir/fechar funcionando,
+  // mesmo sem conseguir gravar a data do próximo turno.
+  if (error.code === 'PGRST204' || /proxima_abertura/i.test(error.message || '')) {
+    const { error: fallbackError } = await sb.from('status').update({ isOpen: aberta }).eq('id', 1);
+    checar(fallbackError);
+    return;
+  }
   checar(error);
 }
 
