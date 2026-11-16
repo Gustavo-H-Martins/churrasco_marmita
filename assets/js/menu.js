@@ -43,6 +43,28 @@ let products = [
   { id:'coca-2l', name:'Coca-Cola 2L', price:14, img:'images/coca_2l.png', cls:'drink', desc:'Coca-Cola 2L bem gelada.' },
 ];
 let cart = {};
+const CART_KEY = 'churrasco_cart_v1';
+
+function salvarCarrinho(){
+  try {
+    const itens = {};
+    products.forEach(p => { if(cart[p.id] > 0) itens[p.name] = cart[p.id]; });
+    localStorage.setItem(CART_KEY, JSON.stringify(itens));
+  } catch(e){}
+}
+function restaurarCarrinho(){
+  try {
+    const itens = JSON.parse(localStorage.getItem(CART_KEY) || '{}') || {};
+    Object.keys(itens).forEach(nome => {
+      const p = products.find(x => x.name === nome);
+      if(p) cart[p.id] = Math.max(0, Number(itens[nome]) || 0);
+    });
+  } catch(e){}
+}
+function limparCarrinhoSalvo(){
+  try { localStorage.removeItem(CART_KEY); } catch(e){}
+}
+
 // Reconstrói o carrinho a partir dos produtos carregados (mantém quantidades já escolhidas)
 function rebuildCart(){
   const prev = cart;
@@ -67,18 +89,74 @@ const shippingEl = document.getElementById('shipping');
 const cartCountEl = document.getElementById('cartCount');
 const statusEl = document.getElementById('status');
 
+// ── Tema claro/escuro ──────────────────────────────────────────────
+(function initTema(){
+  const btn = document.getElementById('themeToggle');
+  if(!btn) return;
+  function aplicar(tema){
+    document.documentElement.dataset.theme = tema;
+    const escuro = tema === 'dark';
+    btn.setAttribute('aria-label', escuro ? 'Ativar tema claro' : 'Ativar tema escuro');
+    btn.setAttribute('aria-pressed', String(escuro));
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if(meta) meta.setAttribute('content', escuro ? 'dark' : 'light');
+  }
+  let atual = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+  aplicar(atual);
+  btn.addEventListener('click', () => {
+    atual = atual === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('churrasco_theme', atual); } catch(e){}
+    aplicar(atual);
+  });
+})();
+
+const ROTULOS_CAT = { meal: 'Marmita', drink: 'Bebida', dessert: 'Sobremesa' };
+let categoriaAtiva = 'todos';
+
 function reportHeight(){
   if (typeof _reportHeight === 'function') _reportHeight();
 }
 
-function showStatus(msg){
+function limparErrosDeCampo(){
+  document.querySelectorAll('.campo-erro').forEach(el => el.remove());
+  document.querySelectorAll('[aria-describedby^="erro-"]').forEach(el => el.removeAttribute('aria-describedby'));
+}
+
+function showStatus(msg, campo){
+  limparErrosDeCampo();
+  if(campo){
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    campo.setAttribute('aria-invalid', 'true');
+    const erro = document.createElement('p');
+    erro.id = 'erro-' + (campo.id || 'campo');
+    erro.className = 'campo-erro';
+    erro.setAttribute('role', 'alert');
+    erro.textContent = msg;
+    campo.insertAdjacentElement('afterend', erro);
+    campo.setAttribute('aria-describedby', erro.id);
+    if(typeof campo.focus === 'function') campo.focus({ preventScroll: true });
+    if(typeof campo.scrollIntoView === 'function') campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    statusEl.textContent = msg;
+    statusEl.className = 'status error';
+    if(typeof statusEl.scrollIntoView === 'function'){
+      statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  reportHeight();
+}
+function showSuccess(msg){
+  limparErrosDeCampo();
   statusEl.textContent = msg;
-  statusEl.className = 'status error';
+  statusEl.className = 'status ok';
   reportHeight();
 }
 function clearStatus(){
   statusEl.textContent = '';
   statusEl.className = 'status';
+  limparErrosDeCampo();
+  document.querySelectorAll('[aria-invalid="true"]').forEach(el => el.removeAttribute('aria-invalid'));
 }
 
 // ── Sincronia com Supabase ─────────────────────────────────────────
@@ -160,31 +238,62 @@ function preencherBairros(){
 
 function updateQty(id, delta){
   cart[id] = Math.max(0, cart[id] + delta);
+  salvarCarrinho();
   render();
 }
 
+function produtosVisiveis(){
+  return categoriaAtiva === 'todos' ? products : products.filter(p => p.cls === categoriaAtiva);
+}
+
 function renderProducts(){
-  productsEl.innerHTML = products.map(p => `
-    <div class="product">
-      <div class="thumb ${esc(p.cls)}"><img src="${esc(p.img)}" alt="${esc(p.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div>
-      <div>
-        <h3>${esc(p.name)}</h3>
-        <p class="desc">${esc(p.desc)}</p>
-        <div class="row">
-          <div class="price">${esc(fmtBRL(p.price))}</div>
+  const visiveis = produtosVisiveis();
+  productsEl.removeAttribute('aria-busy');
+  if(!visiveis.length){
+    productsEl.innerHTML = '<div class="products-empty">Nenhum item nesta categoria por enquanto.</div>';
+    return;
+  }
+  productsEl.innerHTML = visiveis.map(p => `
+    <article class="produto">
+      <div class="produto-img"><img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" /></div>
+      <div class="produto-info">
+        <div class="produto-topo">
+          <h3>${esc(p.name)}</h3>
+          <span class="produto-preco">${esc(fmtBRL(p.price))}</span>
+        </div>
+        <p class="produto-desc">${esc(p.desc)}</p>
+        <div class="produto-rodape">
+          <span class="produto-cat">${esc(ROTULOS_CAT[p.cls] || 'Item')}</span>
           <div class="qty">
-            <button aria-label="Diminuir ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1">−</button>
-            <div class="qty-value">${cart[p.id]}</div>
-            <button aria-label="Adicionar ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1">+</button>
+            <button type="button" aria-label="Remover um ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1">−</button>
+            <span class="qty-value" aria-live="polite">${cart[p.id]}</span>
+            <button type="button" aria-label="Adicionar um ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1">+</button>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   `).join('');
 
   productsEl.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => updateQty(btn.dataset.id, Number(btn.dataset.delta)));
   });
+}
+
+function atualizarCategorias(){
+  document.querySelectorAll('#categorias .cat-chip').forEach(btn => {
+    const cat = btn.dataset.cat;
+    btn.hidden = cat !== 'todos' && !products.some(p => p.cls === cat);
+  });
+}
+
+function setCategoria(cat){
+  categoriaAtiva = cat;
+  document.querySelectorAll('#categorias .cat-chip').forEach(btn => {
+    const ativo = btn.dataset.cat === cat;
+    btn.classList.toggle('ativo', ativo);
+    btn.setAttribute('aria-pressed', String(ativo));
+  });
+  renderProducts();
 }
 
 function renderCart(){
@@ -213,7 +322,7 @@ function renderCart(){
   }
 
   if(!selected.length){
-    cartListEl.innerHTML = '<div class="empty">Seu carrinho está vazio. Escolha os itens e finalize em segundos.</div>';
+    cartListEl.innerHTML = '<div class="empty">Seu carrinho está vazio. Escolha os itens acima.</div>';
   } else {
     cartListEl.innerHTML = selected.map(p => `
       <div class="cart-item">
@@ -224,6 +333,16 @@ function renderCart(){
         <strong>${esc(fmtBRL(cart[p.id] * p.price))}</strong>
       </div>
     `).join('');
+  }
+
+  const barra = document.getElementById('barraCarrinho');
+  if(barra){
+    barra.hidden = totalItems === 0;
+    const barraTotal = document.getElementById('barraTotal');
+    const barraItens = document.getElementById('barraItens');
+    if(barraTotal) barraTotal.textContent = fmtBRL(total);
+    if(barraItens) barraItens.textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'itens'}`;
+    document.body.classList.toggle('tem-barra', totalItems > 0);
   }
 }
 
@@ -278,6 +397,13 @@ function render(){
     banner.classList.toggle('active', !isOpen);
     if(!isOpen) banner.textContent = textoAgendamento();
   }
+  const pill = document.getElementById('statusLoja');
+  if(pill){
+    pill.dataset.estado = isOpen ? 'aberto' : 'fechado';
+    pill.textContent = isOpen
+      ? 'Aberto'
+      : (proximaAbertura ? `Fechado · ${fmtDataDia(proximaAbertura)}` : 'Fechado');
+  }
   const agendaNotice = document.getElementById('agendaNotice');
   if(agendaNotice){
     agendaNotice.textContent = (!isOpen && proximaAbertura)
@@ -285,6 +411,7 @@ function render(){
       : '';
     agendaNotice.style.display = (!isOpen && proximaAbertura) ? '' : 'none';
   }
+  atualizarCategorias();
   renderProducts();
   renderCart();
   reportHeight();
@@ -292,8 +419,12 @@ function render(){
 
 function setDeliveryMode(mode){
   deliveryMode = mode;
-  document.getElementById('deliveryBtn').classList.toggle('active', mode === 'entrega');
-  document.getElementById('pickupBtn').classList.toggle('active', mode === 'retirada');
+  const entregaBtn = document.getElementById('deliveryBtn');
+  const retiradaBtn = document.getElementById('pickupBtn');
+  entregaBtn.classList.toggle('active', mode === 'entrega');
+  retiradaBtn.classList.toggle('active', mode === 'retirada');
+  entregaBtn.setAttribute('aria-pressed', String(mode === 'entrega'));
+  retiradaBtn.setAttribute('aria-pressed', String(mode === 'retirada'));
   const fields = document.getElementById('deliveryFields');
   if(fields) fields.style.display = (mode === 'entrega') ? '' : 'none';
   render();
@@ -303,8 +434,10 @@ let pendingOrder = null;
 
 document.getElementById('finishBtn').addEventListener('click', () => {
   clearStatus();
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
+  const nameEl = document.getElementById('name');
+  const phoneEl = document.getElementById('phone');
+  const name = nameEl.value.trim();
+  const phone = phoneEl.value.trim();
   const address = document.getElementById('address').value.trim();
   const isRetirada = deliveryMode === 'retirada';
   const neighborhoodEl = document.getElementById('neighborhood');
@@ -314,10 +447,10 @@ document.getElementById('finishBtn').addEventListener('click', () => {
   const observacao = document.getElementById('obs').value.trim();
   const selected = products.filter(p => cart[p.id] > 0);
 
-  if(!name) return showStatus('Preencha o nome do cliente.');
-  if(!phone) return showStatus('Preencha o telefone do cliente.');
-  if(!isRetirada && !neighborhood) return showStatus('Selecione o bairro para calcular o frete.');
-  if(!payment) return showStatus('Selecione a forma de pagamento.');
+  if(!name) return showStatus('Preencha o nome do cliente.', nameEl);
+  if(phone.replace(/\D/g, '').length < 10) return showStatus('Informe um telefone com DDD.', phoneEl);
+  if(!isRetirada && !neighborhood) return showStatus('Selecione o bairro para calcular o frete.', neighborhoodEl);
+  if(!payment) return showStatus('Selecione a forma de pagamento.', paymentEl);
   if(!selected.length) return showStatus('Adicione pelo menos um item ao pedido.');
 
   const subtotal = selected.reduce((sum,p) => sum + (cart[p.id] * p.price), 0);
@@ -346,11 +479,11 @@ function openDrinkModal(){
 function renderDrinkList(drinks){
   document.getElementById('drinkList').innerHTML = drinks.map(p => `
     <div class="drink-item">
-      <span><strong>${esc(p.name)}</strong><br /><small style="color:var(--color-text-tertiary)">${esc(fmtBRL(p.price))}</small></span>
+      <span><strong>${esc(p.name)}</strong><br /><small style="color:var(--menu-muted)">${esc(fmtBRL(p.price))}</small></span>
       <div class="qty">
-        <button aria-label="Diminuir ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1">−</button>
-        <strong>${drinkCart[p.id]}</strong>
-        <button aria-label="Adicionar ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1">+</button>
+        <button type="button" aria-label="Diminuir ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="-1">−</button>
+        <span class="qty-value" aria-live="polite">${drinkCart[p.id]}</span>
+        <button type="button" aria-label="Adicionar ${esc(p.name)}" data-id="${esc(p.id)}" data-delta="1">+</button>
       </div>
     </div>`).join('');
   document.getElementById('drinkList').querySelectorAll('button').forEach(b => {
@@ -427,7 +560,10 @@ function finalizeOrder(drinks){
   appliedCoupon = null;
   document.getElementById('coupon').value = '';
   document.getElementById('couponMsg').textContent = '';
+  cart = Object.fromEntries(products.map(p => [p.id, 0]));
+  limparCarrinhoSalvo();
   render();
+  showSuccess('Pedido enviado para o WhatsApp. Confira e envie a mensagem.');
 }
 
 document.getElementById('drinkNoBtn').addEventListener('click', () => finalizeOrder([]));
@@ -438,8 +574,54 @@ document.getElementById('drinkYesBtn').addEventListener('click', () => {
 
 document.getElementById('neighborhood').addEventListener('change', () => render());
 document.getElementById('applyCoupon').addEventListener('click', applyCoupon);
+document.getElementById('coupon').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); applyCoupon(); }
+});
 document.getElementById('deliveryBtn').addEventListener('click', () => setDeliveryMode('entrega'));
 document.getElementById('pickupBtn').addEventListener('click', () => setDeliveryMode('retirada'));
+
+document.querySelectorAll('#categorias .cat-chip').forEach(btn => {
+  btn.addEventListener('click', () => setCategoria(btn.dataset.cat));
+});
+
+const barraBtn = document.getElementById('barraBtn');
+if(barraBtn) barraBtn.addEventListener('click', () => {
+  const checkout = document.getElementById('checkout');
+  if(checkout) checkout.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const nome = document.getElementById('name');
+  if(nome) window.setTimeout(() => nome.focus({ preventScroll: true }), 350);
+});
+
+// Máscara simples de telefone brasileiro: (31) 99999-9999
+const phoneInput = document.getElementById('phone');
+if(phoneInput){
+  phoneInput.addEventListener('input', () => {
+    const d = phoneInput.value.replace(/\D/g, '').slice(0, 11);
+    let out = d;
+    if(d.length > 6){
+      const corte = d.length > 10 ? 7 : 6;
+      out = `(${d.slice(0, 2)}) ${d.slice(2, corte)}-${d.slice(corte)}`;
+    } else if(d.length > 2){
+      out = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    } else if(d.length){
+      out = `(${d}`;
+    }
+    phoneInput.value = out;
+  });
+}
+
+['name', 'phone', 'neighborhood', 'payment', 'address'].forEach(id => {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const limpar = () => {
+    el.removeAttribute('aria-invalid');
+    el.removeAttribute('aria-describedby');
+    const erro = document.getElementById('erro-' + id);
+    if(erro) erro.remove();
+  };
+  el.addEventListener('input', limpar);
+  el.addEventListener('change', limpar);
+});
 
 // ── Produtos (Supabase) ────────────────────────────────────────────
 function sbBase(){ return SUPABASE.url + '/rest/v1/'; }
@@ -490,20 +672,16 @@ async function loadConfigFromDB(){
 }
 
 function applyConfig(){
-  const banner = document.querySelector('.welcome-banner');
-  if(banner) banner.textContent = storeConfig.banner;
-  const h1 = document.querySelector('.hero .brand h1');
-  if(h1) h1.textContent = storeConfig.nome;
-  const p = document.querySelector('.hero .brand p');
-  if(p) p.textContent = storeConfig.descricao;
-  const logoImg = document.querySelector('.hero .brand .logo img');
+  const nome = document.querySelector('.marca-texto strong');
+  if(nome) nome.textContent = storeConfig.nome;
+  const logoImg = document.querySelector('.marca-logo img');
   if(logoImg) logoImg.src = storeConfig.logo;
-  const waLink = document.querySelector('.hero .chips a[href*="wa.me"]');
-  if(waLink){ waLink.href = 'https://wa.me/' + storeConfig.telefone; waLink.textContent = formatPhone(storeConfig.telefone); }
-  const instaLink = document.querySelector('.hero .chips a[href*="instagram"]');
+  const waLink = document.getElementById('linkWhats');
+  if(waLink) waLink.href = 'https://wa.me/' + storeConfig.telefone;
+  const instaLink = document.getElementById('linkInsta');
   if(instaLink) instaLink.href = storeConfig.instagram;
-  const addrChip = document.querySelector('.hero .chips span.chip');
-  if(addrChip) addrChip.textContent = storeConfig.endereco;
+  const endereco = document.getElementById('enderecoLoja');
+  if(endereco) endereco.textContent = storeConfig.endereco;
   document.title = storeConfig.nome;
 }
 
@@ -515,9 +693,25 @@ function formatPhone(num){
 }
 
 // ── Inicialização assíncrona ───────────────────────────────────────
+function renderSkeletons(){
+  productsEl.setAttribute('aria-busy', 'true');
+  productsEl.innerHTML = Array.from({ length: 4 }).map(() => `
+    <div class="produto esqueleto" aria-hidden="true">
+      <div class="esq-img"></div>
+      <div class="esq-info">
+        <div class="esq-linha" style="width:62%"></div>
+        <div class="esq-linha" style="width:92%"></div>
+        <div class="esq-linha" style="width:40%"></div>
+      </div>
+    </div>`).join('');
+}
+
+renderSkeletons();
+
 (async function(){
   await Promise.all([loadProductsFromDB(), loadConfigFromDB()]);
   rebuildCart();
+  restaurarCarrinho();
   var s = new URLSearchParams(window.location.search).get('status');
   if(s === 'fechado') isOpen = false;
   else if(s === 'aberto') isOpen = true;
